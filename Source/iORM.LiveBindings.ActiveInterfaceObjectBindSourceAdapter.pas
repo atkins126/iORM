@@ -67,7 +67,6 @@ type
     FDataSetLinkContainer: IioBSAToDataSetLinkContainer;
     FDeleteAfterCancel: Boolean;
     FonNotify: TioBSANotificationEvent;
-    FioConnectionName: String;
     // Async property
     function GetIoAsync: Boolean;
     procedure SetIoAsync(const Value: Boolean);
@@ -100,8 +99,6 @@ type
     // AutoLoadData
     procedure SetAutoLoadData(const Value: Boolean);
     function GetAutoLoadData: Boolean;
-    procedure SetioConnectionName(const Value: String);
-    function GetioConnectionName: String;
   protected
     function GetCanActivate: Boolean; override;
     // =========================================================================
@@ -134,8 +131,7 @@ type
     procedure InternalSetDataObject(const ADataObject:TObject; const AOwnsObject:Boolean=True); overload;
     procedure InternalSetDataObject(const ADataObject:IInterface; const AOwnsObject:Boolean=False); overload;
   public
-    constructor Create(const ATypeName, ATypeAlias: String; const AWhere: IioWhere;
-  const AOwner: TComponent; const ADataObject: IInterface; const AutoLoadData: Boolean; const AConnectionName : String = ''); overload;
+    constructor Create(const ATypeName, ATypeAlias: String; const AWhere:IioWhere; const AOwner: TComponent; const ADataObject: IInterface; const AutoLoadData: Boolean); overload;
     destructor Destroy; override;
     procedure SetMasterAdapterContainer(AMasterAdapterContainer:IioDetailBindSourceAdaptersContainer);
     procedure SetMasterProperty(AMasterProperty: IioContextProperty);
@@ -173,7 +169,6 @@ type
     property ioAsync:Boolean read GetIoAsync write SetIoAsync;
     property ioAutoPost:Boolean read GetioAutoPost write SetioAutoPost;
     property ioAutoPersist:Boolean read GetioAutoPersist write SetioAutoPersist;
-    property ioConnectionName: String read GetioConnectionName write SetioConnectionName;
     property ioWhere:IioWhere read GetIoWhere write SetIoWhere;
     property ioWhereDetailsFromDetailAdapters: Boolean read GetioWhereDetailsFromDetailAdapters write SetioWhereDetailsFromDetailAdapters;
     property ioViewDataType:TioViewDataType read GetIoViewDataType;
@@ -228,7 +223,7 @@ begin
 end;
 
 constructor TioActiveInterfaceObjectBindSourceAdapter.Create(const ATypeName, ATypeAlias: String; const AWhere: IioWhere;
-  const AOwner: TComponent; const ADataObject: IInterface; const AutoLoadData: Boolean; const AConnectionName : String);
+  const AOwner: TComponent; const ADataObject: IInterface; const AutoLoadData: Boolean);
 begin
   FAutoLoadData := AutoLoadData;
   FAsync := False;
@@ -237,7 +232,6 @@ begin
   inherited Create(AOwner, ADataObject, ATypeAlias, ATypeName);
   FLocalOwnsObject := False;  // Always false because it's a BSA for an interface (AutoRefCount)
   FWhere := AWhere;
-  FioConnectionName := AConnectionName;
   FWhereDetailsFromDetailAdapters := False;
   FDataSetLinkContainer := TioLiveBindingsFactory.BSAToDataSetLinkContainer;
   // Set Master & Details adapters reference
@@ -527,11 +521,6 @@ begin
   Result := Self.AutoPost;
 end;
 
-function TioActiveInterfaceObjectBindSourceAdapter.GetioConnectionName: String;
-begin
-  result := FioConnectionName;
-end;
-
 function TioActiveInterfaceObjectBindSourceAdapter.GetIoViewDataType: TioViewDataType;
 begin
   Result := VIEW_DATA_TYPE;
@@ -759,11 +748,6 @@ end;
 procedure TioActiveInterfaceObjectBindSourceAdapter.SetioAutoPost(const Value: Boolean);
 begin
   Self.AutoPost := Value;
-end;
-
-procedure TioActiveInterfaceObjectBindSourceAdapter.SetioConnectionName(const Value: String);
-begin
-  FioConnectionName := Value;
 end;
 
 procedure TioActiveInterfaceObjectBindSourceAdapter.SetIoWhere(

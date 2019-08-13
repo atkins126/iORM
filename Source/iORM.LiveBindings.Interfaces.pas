@@ -222,10 +222,6 @@ type
     procedure SetActive(Value: Boolean);
     function GetActive: Boolean;
     property Active: Boolean read GetActive write SetActive;
-    // Connection name
-    procedure SetioConnectionName(const Value: String);
-    function GetioConnectionName : String;
-    property ioConnectionName : String read GetioConnectionName write SetioConnectionName;
   end;
 
   // Bind source adapter container

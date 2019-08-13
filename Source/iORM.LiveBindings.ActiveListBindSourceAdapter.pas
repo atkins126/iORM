@@ -71,7 +71,6 @@ type
     FDeleteAfterCancel: Boolean;
     FInterfacedList: IInterface;  // Reference to the same instance contained by FList field, this reference is only to keep live the list instance
     FonNotify: TioBSANotificationEvent;
-    FioConnectionName: String;
     procedure ListViewDeletingTimerEventHandler(Sender: TObject);
     // TypeName
     procedure SetTypeName(const AValue:String);
@@ -111,8 +110,6 @@ type
     // AutoLoadData
     procedure SetAutoLoadData(const Value: Boolean);
     function GetAutoLoadData: Boolean;
-    procedure SetioConnectionName(const Value: String);
-    function GetioConnectionName: String;
   protected
     // =========================================================================
     // Part for the support of the IioNotifiableBindSource interfaces (Added by iORM)
@@ -189,7 +186,6 @@ type
     property ioAsync:Boolean read GetIoAsync write SetIoAsync;
     property ioAutoPost:Boolean read GetioAutoPost write SetioAutoPost;
     property ioAutoPersist:Boolean read GetioAutoPersist write SetioAutoPersist;
-    property ioConnectionName: String read GetioConnectionName write SetioConnectionName;
     property ioWhere:IioWhere read GetIoWhere write SetIoWhere;
     property ioWhereDetailsFromDetailAdapters: Boolean read GetioWhereDetailsFromDetailAdapters write SetioWhereDetailsFromDetailAdapters;
     property ioViewDataType:TioViewDataType read GetIoViewDataType;
@@ -559,11 +555,6 @@ begin
   Result := Self.AutoPost;
 end;
 
-function TioActiveListBindSourceAdapter.GetioConnectionName: String;
-begin
-  result := FioConnectionName;
-end;
-
 function TioActiveListBindSourceAdapter.GetIoViewDataType: TioViewDataType;
 begin
   Result := VIEW_DATA_TYPE;
@@ -826,11 +817,6 @@ end;
 procedure TioActiveListBindSourceAdapter.SetioAutoPost(const Value: Boolean);
 begin
   Self.AutoPost := Value;
-end;
-
-procedure TioActiveListBindSourceAdapter.SetioConnectionName(const Value: String);
-begin
-  FioConnectionName := Value;
 end;
 
 procedure TioActiveListBindSourceAdapter.SetIoWhere(const Value: IioWhere);
