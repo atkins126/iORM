@@ -58,8 +58,9 @@ type
     procedure Add(const AName:String; const ACommandItem:IioCommandsContainerItem);
     procedure AddOrUpdate(const AName:String; const ACommandItem:IioCommandsContainerItem);
     procedure LoadCommands(const AOwner:TComponent);
-    procedure CopyCommands(const ADestinationCommandsContainer: IioCommandsContainer);
-    procedure CopyCommand(const ACommandName:String; const ADestinationCommandsContainer: IioCommandsContainer);
+    procedure CopyCommands(const ADestinationCommandsContainer: IioCommandsContainer; const AUpdateIfExists: Boolean = False);
+    procedure CopyCommand(const ACommandName:String; const ADestinationCommandsContainer: IioCommandsContainer; const AUpdateIfExists: Boolean = False);
+    procedure Delete(AName: String);
     // NB: DI questi metodì è stata lasciata, per il momento, anche l'implementazione commentata
 //    procedure RegisterAction(const AName:String; const AOwner:TComponent; const AAction:TAction; const AIsNotificationTarget:Boolean=False);
 //    procedure RegisterMethod(const AName:String; const AOwner:TComponent; const ARttiMethod:TRttiMethod; const AIsNotificationTarget:Boolean=False);
@@ -70,7 +71,7 @@ type
     procedure BindView(const AView:TComponent);
     procedure BindViewControl(const AControl:TObject; const ACommandName:String);
     procedure UniBindViewCommands(const AView:TComponent; const AViewType:TRttiInstanceType);
-    function Exist(const AName:String): Boolean;
+    function Exists(const AName:String): Boolean;
     function Get(const AName:String; const ANoException:Boolean=False): IioCommandsContainerItem;
   end;
 
@@ -399,7 +400,7 @@ begin
     Self.Owner := AOwner;
   end
   else
-    raise EioException.Create(Self.ClassName + ': Invalid Method (null).');
+    raise EioException.Create(Self.ClassName, 'FillCommandInfo', 'Invalid Method (null).');
 end;
 
 function TioCommandsContainerItemMethod.IsEmpty: Boolean;
@@ -552,7 +553,7 @@ procedure TioCommandsContainerItemAnonimousMethod.FillCommandInfo(
 begin
   // An anonimous method can be registered as Command only by runtime code
   //  therefore must never perform this method
-  raise EioException.Create(Self.ClassName + ': anonimous methods ca can be registered as Command only by runtime code therefore must never perform this method.');
+  raise EioException.Create(Self.ClassName, 'FillCommandInfo', 'anonimous methods ca can be registered as Command only by runtime code therefore must never perform this method.');
   inherited;
 end;
 
@@ -573,7 +574,9 @@ end;
 procedure TioCommandsContainer.Add(const AName: String;
   const ACommandItem: IioCommandsContainerItem);
 begin
-  FContainer.Add(   UpperCase(AName), ACommandItem   );
+  if Exists(AName) then
+    raise EioException.Create(Self.ClassName, 'Add', 'Command "' + AName + '" already exists.');
+  FContainer.Add(Uppercase(AName), ACommandItem);
 end;
 
 procedure TioCommandsContainer.BindViewControl(const AControl: TObject;
@@ -586,12 +589,12 @@ begin
   // Get the action
   LCommandItem := Self.Get(ACommandName);
   if not LCommandItem.IsAction then
-    raise EioException.Create(Self.ClassName + ': The command is not an action.');
+    raise EioException.Create(Self.ClassName, 'BindViewControl', 'The command is not an action.');
   // Get the control action property
   LControlType := TioRttiContextFactory.RttiContext.GetType(AControl.ClassInfo).AsInstance;
   LControlActionProperty := LControlType.GetProperty('Action');
   if not Assigned(LControlActionProperty) then
-    raise EioException.Create(Self.ClassName + ': "Action" property not found.');
+    raise EioException.Create(Self.ClassName, 'BindViewControl', '"Action" property not found.');
   // Bind the action
   LControlActionProperty.SetValue(AControl, LCommandItem.AsAction.AsTValue);
 end;
@@ -599,7 +602,7 @@ end;
 procedure TioCommandsContainer.AddOrUpdate(const AName: String;
   const ACommandItem: IioCommandsContainerItem);
 begin
-  if Self.Exist(AName) then
+  if Self.Exists(AName) then
     FContainer.Items[AName] := ACommandItem
   else
     Self.Add(AName, ACommandItem);
@@ -637,29 +640,29 @@ begin
         // Get view control
         LViewControlType := LViewField.FieldType;
         if not LViewControlType.IsInstance then
-          raise EioException.Create(Self.ClassName + ': The view field is not an instance.');
+          raise EioException.Create(Self.ClassName, 'BindView', 'The view field is not an instance.');
         LViewControl := LViewField.GetValue(AView).AsObject;
         // Bind
         Self.BindViewControl(LViewControl, LCommandName);
       end;
 end;
 
-procedure TioCommandsContainer.CopyCommand(const ACommandName: String;
-  const ADestinationCommandsContainer: IioCommandsContainer);
+procedure TioCommandsContainer.CopyCommand(const ACommandName:String; const ADestinationCommandsContainer: IioCommandsContainer; const AUpdateIfExists: Boolean = False);
 var
   LCommandContainerItem: IioCommandsContainerItem;
 begin
-  LCommandContainerItem := Self.Get(ACommandName);
+  if AUpdateIfExists and ADestinationCommandsContainer.Exists(ACommandName) then
+    ADestinationCommandsContainer.Delete(ACommandName);
+  LCommandContainerItem := Get(ACommandName);
   ADestinationCommandsContainer.Add(ACommandName, LCommandContainerItem);
 end;
 
-procedure TioCommandsContainer.CopyCommands(
-  const ADestinationCommandsContainer: IioCommandsContainer);
+procedure TioCommandsContainer.CopyCommands(const ADestinationCommandsContainer: IioCommandsContainer; const AUpdateIfExists: Boolean = False);
 var
   LCommandName: String;
 begin
   for LCommandName in FContainer.Keys do
-    Self.CopyCommand(LCommandName, ADestinationCommandsContainer);
+    Self.CopyCommand(LCommandName, ADestinationCommandsContainer, AUpdateIfExists);
 end;
 
 constructor TioCommandsContainer.Create(const AOwner:TComponent);
@@ -671,13 +674,21 @@ begin
   LoadCommands(AOwner);
 end;
 
+procedure TioCommandsContainer.Delete(AName: String);
+begin
+  AName := Uppercase(AName);
+  if not Exists(AName) then
+    raise EioException.Create(Self.ClassName, 'Delete', '"' + AName + '" Command/Action not found.');
+  FContainer.Remove(AName);
+end;
+
 destructor TioCommandsContainer.Destroy;
 begin
   FContainer.Free;
   inherited;
 end;
 
-function TioCommandsContainer.Exist(const AName: String): Boolean;
+function TioCommandsContainer.Exists(const AName: String): Boolean;
 begin
   Result := FContainer.ContainsKey(   UpperCase(AName)  );
 end;
@@ -687,13 +698,13 @@ begin
   Result := nil;
   if FContainer.TryGetValue(UpperCase(AName), Result) or ANoException then
     Exit;
-  raise EioException.Create(Self.ClassName + ': "' + AName + '" Command/Action not found.');
+  raise EioException.Create(Self.ClassName, 'Get', '"' + AName + '" Command/Action not found.');
 end;
 
 function TioCommandsContainer.GetOrCreate(
   const AName: String; const ACommandType:TioCommandType): IioCommandsContainerItem;
 begin
-  if not Self.Exist(AName) then
+  if not Self.Exists(AName) then
     Self.Add(   AName, TioMVVMFactory.NewCommandsContainerItem(AName, ACommandType)   );
   Result := Self.Get(AName);
 end;
@@ -764,7 +775,7 @@ begin
     Exit;
   // A CommandName is required
   if LCmdInfo.Name.IsNull or LCmdInfo.Name.Value.IsEmpty then
-    raise EioException.Create(Self.ClassName + ': Command/Action name is required.');
+    raise EioException.Create(Self.ClassName, 'LoadCommands_ParseRttiElement', 'Command/Action name is required.');
   // Get or create the CommandsContainerItem
   LCmdItem := Self.GetOrCreate(LCmdInfo.Name.Value, LCmdInfo.CommandType.Value);
   LCmdItem.Owner := AOwner;
