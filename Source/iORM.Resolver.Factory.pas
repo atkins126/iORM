@@ -64,6 +64,8 @@ end;
 
 class function TioResolverFactory.GetResolver(const AResolverMode: TioResolverStrategy): TioResolverRef;
 begin
+  { TODO -oMaurizio -cDa Controllare : Il risultato potrebbe essere indefinito }
+  Result := nil;
   case AResolverMode of
     rsByDependencyInjection: Result := TioResolverByDependencyInjection;
     rsByRtti: raise EioException.Create(Self.ClassName + ': "rtByRtti" resolver mode not yet implemented.');

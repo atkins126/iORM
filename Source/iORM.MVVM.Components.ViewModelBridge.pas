@@ -20,6 +20,7 @@ type
     // Events
     FOnNeedViewModel: TioNeedViewModelEvent;
     procedure AutoSetClientComponentsOnCreate;
+    { TODO -oMaurizio -cDa Controllare : Controllare questo perchè il metodo da cui eredita è protected mentre qui è private }
     procedure Loaded; override;
     procedure DoNeedViewModel;
     // Commands

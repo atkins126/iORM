@@ -853,8 +853,6 @@ begin
 end;
 
 procedure TioBSADataSet.InternalLoadCurrentRecord(Buffer: TRecordBuffer);
-var
-  LBookmarkFlag: TBookmarkFlag;
 begin
   // Put the current record index in the record buffer
   PInteger(Buffer)^ := fCurrentRecord;

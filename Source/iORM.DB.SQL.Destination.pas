@@ -105,6 +105,7 @@ end;
 
 function TioSQLDestination.Execute(const AIgnoreObjNotExists:Boolean): Integer;
 begin
+  { TODO -oMaurizio -cDa controllare : Il risultato è indefinito (manca il valore del result) }
   FIgnoreObjNotExists := AIgnoreObjNotExists;
   TioStrategyFactory.GetStrategy(FConnectionName).SQLDest_Execute(Self);
 end;

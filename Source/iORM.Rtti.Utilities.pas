@@ -257,6 +257,7 @@ begin
   end;
 // Before XE7
 {$ELSE  NEXTGEN}
+ { TODO -oMaurizio -cDa Controllare : Controllare questo perchè una widestring viene castata a string }
   Result := ATypeInfo.Name;
 {$ENDIF NEXTGEN}
 end;

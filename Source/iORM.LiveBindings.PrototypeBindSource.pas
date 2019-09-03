@@ -86,7 +86,9 @@ type
     function __ObjRelease: Integer; override;
 {$ENDIF}
     // =========================================================================
+   { TODO -oMaurizio -cDa Controllare : Controllare questo perchè il metodo da cui eredita è protected mentre qui è private }
     procedure DoCreateAdapter(var ADataObject: TBindSourceAdapter); override;
+   { TODO -oMaurizio -cDa Controllare : Controllare questo perchè il metodo da cui eredita è protected mentre qui è private }
     procedure Loaded; override;
     procedure DoNotify(ANotification:IioBSANotification);
     procedure WhereOnChangeEventHandler(Sender:TObject);

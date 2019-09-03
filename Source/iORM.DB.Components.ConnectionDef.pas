@@ -97,7 +97,9 @@ type
     procedure SetDefaultConnection(const Value: Boolean);
     procedure DoAfterRegister;
   protected
+    { TODO -oMaurizio -cDa Controllare : Controllare questo perchè il metodo da cui eredita è public mentre qui è protected }
     constructor Create(AOwner: TComponent); override;
+    { TODO -oMaurizio -cDa Controllare : Controllare questo perchè il metodo da cui eredita è public mentre qui è protected }
     destructor Destroy; override;
     procedure Loaded; override;
     function GetFullPathDatabase: String;
