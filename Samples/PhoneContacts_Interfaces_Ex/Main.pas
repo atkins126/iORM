@@ -76,10 +76,10 @@ type
     procedure Button8Click(Sender: TObject);
     procedure Button9Click(Sender: TObject);
     procedure Button12Click(Sender: TObject);
+    procedure SQLiteConnAfterRegister(Sender: TObject);
     procedure RBSQLiteChange(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
-    procedure SQLiteConnAfterCreateDB(Sender: TioCustomConnectionDef; AScript, AError: string);
   private
     { Private declarations }
   public
@@ -115,9 +115,8 @@ procedure TMainForm.Button4Click(Sender: TObject);
 var
   LPerson: IPerson;
 begin
-  LPerson := io.Create<ICustomer>;
+  LPerson := io.di.Locate<ICustomer>.Get;
   BSMaster.Append(LPerson);
-  NextTabAction1.Execute;
 end;
 
 procedure TMainForm.Button8Click(Sender: TObject);
@@ -129,7 +128,7 @@ procedure TMainForm.Button9Click(Sender: TObject);
 var
   AList: TList<IPerson>;
 begin
-  AList := io.Load<IPerson>.ToList;
+  AList := io.Load<IPerson>.ToGenericList.OfType<TList<IPerson>>;
   BSMaster.SetDataObject(AList);
 end;
 
@@ -147,9 +146,11 @@ begin
     FirebirdConn.DefaultConnection := True;
 end;
 
-procedure TMainForm.SQLiteConnAfterCreateDB(Sender: TioCustomConnectionDef; AScript, AError: string);
+procedure TMainForm.SQLiteConnAfterRegister(Sender: TObject);
 begin
-  TSampleData.CheckForSampleDataCreation(Sender.Name);
+  // Check for sample data creation
+  if (Sender as TioCustomConnectionDef).DefaultConnection then
+    TSampleData.CheckForSampleDataCreation;
 end;
 
 end.

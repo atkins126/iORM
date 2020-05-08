@@ -43,33 +43,26 @@ uses
 
 type
 
-  IioContextTable = interface;
-
-  IioBaseTableCompanion = interface(IioSqlItem)
-    ['{A0C3B8E0-CFA3-4957-A142-FA5E8C18C6B2}']
-    procedure SetTable(const ATable: IioContextTable);
-  end;
-
-  IioGroupBy = interface(IioBaseTableCompanion)
+  IioGroupBy = interface
     ['{E57CDC09-3D2B-432B-9114-B7CCB1EDCCA3}']
+    function GetSql(const ASelfClassName: String): String;
   end;
 
-  IioJoinItem = interface
+  IioJoinItem = interface(IioSqlItem)
     ['{93E0B456-6BD1-464C-BDA7-FF1F014F6B76}']
-    function GetSql(const AConnectionDefName: String): String;
     function GetJoinType: TioJoinType;
     function GetJoinClassRef: TioClassRef;
     function GetJoinCondition: String;
   end;
 
-  IioJoins = interface(IioBaseTableCompanion)
+  IioJoins = interface
     ['{8BAACD49-D42C-4278-97AA-EAE00A5EEA52}']
     procedure Add(AJoinItem:IioJoinItem);
+    function GetSql(const ASelfClassName: String): String;
   end;
 
   IioClassFromField = interface
     ['{D15A9A28-FB90-4753-BE4A-7484A834CD2D}']
-    procedure SetTable(const ATable: IioContextTable);
     function GetFieldName: string;
     function GetSqlFieldName: string;
     function GetSqlParamName: String;
@@ -94,8 +87,6 @@ type
     function GetMapMode: TioMapModeType;
     function GetRttiType: TRttiInstanceType;
     function GetAutoCreateDB: Boolean;
-    function GetClassName: String;
-    function GetQualifiedClassName: String;
     // IndexList
     function IndexListExists: Boolean;
     function GetIndexList(AAutoCreateIfUnassigned:Boolean): TioIndexList;

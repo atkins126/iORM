@@ -66,18 +66,12 @@ type
     procedure SetRecNo(Value: Integer); override;
 
     // bookmarks
-    procedure InternalGotoBookmark(Bookmark: Pointer); override;  deprecated 'Use overloaded method instead';
-    procedure InternalGotoBookmark(Bookmark: TBookmark); override;
-    procedure InternalSetToRecord(Buffer: TRecordBuffer); override;  deprecated 'Use overloaded method instead';
-    procedure InternalSetToRecord(Buffer: TRecBuf); override;
-    procedure SetBookmarkData(Buffer: TRecBuf; Data: TBookmark); override;
-    procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;  deprecated 'Use overloaded method instead';
-    procedure GetBookmarkData(Buffer: TRecBuf; Data: TBookmark); override;
-    procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;  deprecated 'Use overloaded method instead';
-    procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); override; deprecated 'Use overloaded method instead';
-    procedure SetBookmarkFlag(Buffer: TRecBuf; AValue: TBookmarkFlag); override;
-    function GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; override; deprecated 'Use overloaded method instead';
-    function GetBookmarkFlag(Buffer: TRecBuf): TBookmarkFlag; override;
+    procedure InternalGotoBookmark(Bookmark: Pointer); override;
+    procedure InternalSetToRecord(Buffer: TRecordBuffer); override;
+    procedure SetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
+    procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
+    procedure SetBookmarkFlag(Buffer: TRecordBuffer; Value: TBookmarkFlag); override;
+    function GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; override;
 
     // editing (dummy vesions)
     procedure InternalDelete; override;
@@ -86,7 +80,6 @@ type
 
     // other
     procedure InternalHandleException; override;
-    function GetRecordInfo: TioRecInfo;
   published
     // redeclared data set properties
     property Active;
@@ -146,6 +139,7 @@ type
     procedure SetFieldData(Field: TField; Buffer: TValueBuffer); override;
     function GetCanModify: Boolean; override;
     procedure DoAfterScroll; override;
+    function GetRecordInfo: TioRecInfo;
     function GetRecordIdx: Integer;
   public
     function GetFieldData(Field: TField; var Buffer: TValueBuffer; NativeFormat: Boolean): Boolean; override;
@@ -256,34 +250,19 @@ end;
 ////// Bookmarks management and movement
 ////////////////////////////////////////
 
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // II: set the requested bookmark as current record
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 procedure TioCustomDataSet.InternalGotoBookmark (Bookmark: Pointer);
 var
   ReqBookmark: Integer;
 begin
-  ReqBookmark := PInteger(Bookmark)^;
+  ReqBookmark := Integer (Bookmark^);
   if (ReqBookmark >= BofCrack) and (ReqBookmark <= InternalRecordCount) then
     FCurrentRecord := ReqBookmark
   else
     raise EioException.Create(Self.ClassName, 'InternalGotoBookmark', 'Bookmark ' + ReqBookmark.ToString + ' not found');
 end;
 
-procedure TioCustomDataSet.InternalGotoBookmark(Bookmark: TBookmark);
-var
-  ReqBookmark: Integer;
-begin
-  ReqBookmark := PInteger(Bookmark)^;
-  if (ReqBookmark >= BofCrack) and (ReqBookmark <= InternalRecordCount) then
-    FCurrentRecord := ReqBookmark
-  else
-    raise EioException.Create(Self.ClassName, 'InternalGotoBookmark', 'Bookmark ' + ReqBookmark.ToString + ' not found');
-end;
-
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // II: same as above (but passes a buffer)
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 procedure TioCustomDataSet.InternalSetToRecord (Buffer: TRecordBuffer);
 var
   ReqBookmark: Integer;
@@ -292,38 +271,18 @@ begin
   InternalGotoBookmark (@ReqBookmark);
 end;
 
-procedure TioCustomDataSet.InternalSetToRecord(Buffer: TRecBuf);
-var
-  ReqBookmark: Integer;
-begin
-  ReqBookmark := PioRecInfo(Buffer + FRecordSize)^.Bookmark;
-  InternalGotoBookmark (@ReqBookmark);
-end;
-
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// II: retrieve bookmarks flags from buffer
 function TioCustomDataSet.GetBookmarkFlag (
   Buffer: TRecordBuffer): TBookmarkFlag;
 begin
   Result := PioRecInfo(Buffer + FRecordSize).BookmarkFlag;
 end;
 
-function TioCustomDataSet.GetBookmarkFlag(Buffer: TRecBuf): TBookmarkFlag;
-begin
-  Result := PioRecInfo(Buffer + FRecordSize)^.BookmarkFlag;
-end;
-
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// II: change the bookmark flags in the buffer
 procedure TioCustomDataSet.SetBookmarkFlag (Buffer: TRecordBuffer;
   Value: TBookmarkFlag);
 begin
   PioRecInfo(Buffer + FRecordSize).BookmarkFlag := Value;
-end;
-
-procedure TioCustomDataSet.SetBookmarkFlag(Buffer: TRecBuf; AValue: TBookmarkFlag);
-begin
-  PioRecInfo(Buffer + FRecordSize)^.BookmarkFlag := AValue;
 end;
 
 // II: Go to a special position before the first record
@@ -339,33 +298,20 @@ begin
   FCurrentRecord := EofCrack;
 end;
 
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // II: read the bookmark data from record buffer
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 procedure TioCustomDataSet.GetBookmarkData (
   Buffer: TRecordBuffer; Data: Pointer);
 begin
-  Integer(Data^) := PioRecInfo(Buffer + FRecordSize).Bookmark;
+  Integer(Data^) :=
+    PioRecInfo(Buffer + FRecordSize).Bookmark;
 end;
 
-// II: retrieve bookmarks flags from buffer
-procedure TioCustomDataSet.GetBookmarkData(Buffer: TRecBuf; Data: TBookmark);
-begin
-  PInteger(Data)^ := PioRecInfo(Buffer + FRecordSize)^.Bookmark;
-end;
-
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // II: set the bookmark data in the buffer
-// NB: DEPRECATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-procedure TioCustomDataSet.SetBookmarkData (Buffer: TRecordBuffer; Data: Pointer);
+procedure TioCustomDataSet.SetBookmarkData (
+  Buffer: TRecordBuffer; Data: Pointer);
 begin
-  PioRecInfo(Buffer + FRecordSize).Bookmark := Integer(Data^);
-end;
-
-// II: change the bookmark flags in the buffer
-procedure TioCustomDataSet.SetBookmarkData(Buffer: TRecBuf; Data: TBookmark);
-begin
-  PioRecInfo(Buffer + FRecordSize)^.Bookmark := PInteger(Data)^;
+  PioRecInfo(Buffer + FRecordSize).Bookmark :=
+    Integer(Data^);
 end;
 
 // II (optional): Record count
@@ -373,11 +319,6 @@ function TioCustomDataSet.GetRecordCount: Longint;
 begin
   CheckActive;
   Result := InternalRecordCount;
-end;
-
-function TioCustomDataSet.GetRecordInfo: TioRecInfo;
-begin
-  Result := PioRecInfo(ActiveBuffer)^;
 end;
 
 // II (optional): Get the number of the current record
@@ -551,11 +492,13 @@ begin
     Result := nil;
 end;
 
+function TioBSADataSet.GetRecordInfo: TioRecInfo;
+begin
+  Result := PioRecInfo(ActiveBuffer)^;
+end;
+
 procedure TioBSADataSet.InternalCancel;
 begin
-  // If destroying then exit
-  if csDestroying in ComponentState then
-    Exit;
   // Propagate the operation to the linked BindSourceAdapter
   FBindSourceAdapter.GetDataSetLinkContainer.Disable;
   try
@@ -739,18 +682,6 @@ begin
   LProperty.SetValue(FBindSourceAdapter.Current, LValue);
   // Set modified
   SetModified(True);
-  // NB: Mauri 03/03/2020 - Aggiungendo queste due righe, oltre ad aver eliminato la condizione
-  //      in ActiveBindSourceAdapter.DoAfterPost e ActiveBindSourceAdapter.DoAfterPostFields,
-  //      sono riuscito a dare un comportamente corretto anche al DataSet in caso AutoPost=true
-  //      (precedentemente invece in pratica con faceva mai il post)
-  // Mauri 19/04/2020: Ho aggiunto questa condizione perchè mi capitava che quando
-  //  il Dataset si muoveva su un altro record e quindi faceva il post (se era in editing)
-  //  che il dataset faceva il post perchè era ancora in editing/insert mentre il BindSourceAdapter
-  //   invece era già con stato seBrowse quindi, senza condizione, mi dava un errore di record not
-  //   in edit or insert mode. Non so perchè si verificava questo disallineamento, cmq così
-  //   sembra non dare problemi.
-  if InternalActiveAdapter.ioAutoPost and (FBindSourceAdapter.State in seEditModes) then
-    InternalActiveAdapter.Post;
 end;
 
 procedure TioBSADataSet.SetInternalAdapter(
@@ -939,14 +870,7 @@ begin
   // Propagate the operation to the linked BindSourceAdapter
   FBindSourceAdapter.GetDataSetLinkContainer.Disable;
   try
-    // Mauri 19/04/2020: Ho aggiunto questa condizione perchè mi capitava che quando
-    //  il Dataset si muoveva su un altro record e quindi faceva il post (se era in editing)
-    //  che il dataset faceva il post perchè era ancora in editing/insert mentre il BindSourceAdapter
-    //   invece era già con stato seBrowse quindi, senza condizione, mi dava un errore di record not
-    //   in edit or insert mode. Non so perchè si verificava questo disallineamento, cmq così
-    //   sembra non dare problemi.
-    if FBindSourceAdapter.State in seEditModes then
-      FBindSourceAdapter.Post;
+    FBindSourceAdapter.Post;
   finally
     FBindSourceAdapter.GetDataSetLinkContainer.Enable;
   end;

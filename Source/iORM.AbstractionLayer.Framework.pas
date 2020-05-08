@@ -51,12 +51,10 @@ type
     class function GetConcreteClass: TioApplicationRef;
     class procedure SetConcreteClass(const AClass: TioApplicationRef);
     class procedure _HandleException(const Sender: TObject); virtual; abstract;
-    class procedure _ShowMessage(const AMessage: string); virtual; abstract;
     class function _Terminate: Boolean; virtual; abstract;
   public
     class procedure CheckIfAbstractionLayerComponentExists;
     class procedure HandleException(const Sender: TObject);
-    class procedure ShowMessage(const AMessage: string);
     class function Terminate: Boolean;
   end;
 
@@ -195,11 +193,6 @@ end;
 class procedure TioApplication.SetConcreteClass(const AClass: TioApplicationRef);
 begin
   FConcreteClass_NoDirectCall := AClass;
-end;
-
-class procedure TioApplication.ShowMessage(const AMessage: string);
-begin
-  GetConcreteClass._ShowMessage(AMessage);
 end;
 
 class function TioApplication.Terminate: Boolean;

@@ -1,35 +1,37 @@
-{ *************************************************************************** }
-{ }
-{ iORM - (interfaced ORM) }
-{ }
-{ Copyright (C) 2015-2016 Maurizio Del Magno }
-{ }
-{ mauriziodm@levantesw.it }
-{ mauriziodelmagno@gmail.com }
-{ https://github.com/mauriziodm/iORM.git }
-{ }
-{ }
-{ *************************************************************************** }
-{ }
-{ This file is part of iORM (Interfaced Object Relational Mapper). }
-{ }
-{ Licensed under the GNU Lesser General Public License, Version 3; }
-{ you may not use this file except in compliance with the License. }
-{ }
-{ iORM is free software: you can redistribute it and/or modify }
-{ it under the terms of the GNU Lesser General Public License as published }
-{ by the Free Software Foundation, either version 3 of the License, or }
-{ (at your option) any later version. }
-{ }
-{ iORM is distributed in the hope that it will be useful, }
-{ but WITHOUT ANY WARRANTY; without even the implied warranty of }
-{ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the }
-{ GNU Lesser General Public License for more details. }
-{ }
-{ You should have received a copy of the GNU Lesser General Public License }
-{ along with iORM.  If not, see <http://www.gnu.org/licenses/>. }
-{ }
-{ *************************************************************************** }
+{***************************************************************************}
+{                                                                           }
+{           iORM - (interfaced ORM)                                         }
+{                                                                           }
+{           Copyright (C) 2015-2016 Maurizio Del Magno                      }
+{                                                                           }
+{           mauriziodm@levantesw.it                                         }
+{           mauriziodelmagno@gmail.com                                      }
+{           https://github.com/mauriziodm/iORM.git                          }
+{                                                                           }
+{                                                                           }
+{***************************************************************************}
+{                                                                           }
+{  This file is part of iORM (Interfaced Object Relational Mapper).         }
+{                                                                           }
+{  Licensed under the GNU Lesser General Public License, Version 3;         }
+{  you may not use this file except in compliance with the License.         }
+{                                                                           }
+{  iORM is free software: you can redistribute it and/or modify             }
+{  it under the terms of the GNU Lesser General Public License as published }
+{  by the Free Software Foundation, either version 3 of the License, or     }
+{  (at your option) any later version.                                      }
+{                                                                           }
+{  iORM is distributed in the hope that it will be useful,                  }
+{  but WITHOUT ANY WARRANTY; without even the implied warranty of           }
+{  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            }
+{  GNU Lesser General Public License for more details.                      }
+{                                                                           }
+{  You should have received a copy of the GNU Lesser General Public License }
+{  along with iORM.  If not, see <http://www.gnu.org/licenses/>.            }
+{                                                                           }
+{***************************************************************************}
+
+
 
 unit iORM.Context.Table;
 
@@ -42,30 +44,18 @@ uses
 
 type
 
-  TioContextTable = class;
-
-  // Base class for all ContextTable companions
-  TioBaseTableCompanion = class(TInterfacedObject)
-  strict private
-    FTable: TioContextTable; // This field is of class type to avoid circular reference with the table (memory leak prevention)
-  strict protected
-    function Table: TioContextTable;
-  public
-    procedure SetTable(const ATable: IioContextTable); virtual;
-  end;
-
   // Classe che incapsula le informazioni per l'eventuale GroubBY
-  // almeno la parte fissa eventualmente dichiarata con gli attributes
-  // nella dichiarazione della classe (ci potrebbe poi essere in futuro
-  // anche una GroupBy non fissa e impostabile tramite TioWhere come
-  // se fosse una condizione prima del ToList o TObject, Qquest'ultima
-  // GroupBy avrebbe la precedenza su qquella fissa se specificata)
-  TioGroupBy = class(TioBaseTableCompanion, IioGroupBy)
+  //  almeno la parte fissa eventualmente dichiarata con gli attributes
+  //  nella dichiarazione della classe (ci potrebbe poi essere in futuro
+  //  anche una GroupBy non fissa e impostabile tramite TioWhere come
+  //  se fosse una condizione prima del ToList o TObject, Qquest'ultima
+  //  GroupBy avrebbe la precedenza su qquella fissa se specificata)
+  TioGroupBy = class(TInterfacedObject, IioGroupBy)
   strict private
     FSqlText: String;
   public
-    constructor Create(const ASqlText: String);
-    function GetSql: String;
+    constructor Create(const ASqlText:String);
+    function GetSql(const ASelfClassName: String): String;
   end;
 
   // ===========================================================================
@@ -78,63 +68,64 @@ type
     FJoinType: TioJoinType;
     FJoinClassRef: TioClassRef;
   public
-    constructor Create(const AJoinType: TioJoinType; AJoinClassRef: TioClassRef; AJoinCondition: String = '');
-    function GetSql(const AConnectionDefName: String): String;
+    constructor Create(const AJoinType:TioJoinType; AJoinClassRef:TioClassRef; AJoinCondition:String='');
+    function GetSql: String;
     function GetJoinClassRef: TioClassRef;
     function GetJoinCondition: String;
     function GetJoinType: TioJoinType;
   end;
 
   TioJoinItemList = TList<IioJoinItem>;
-
   // Classe che incapsula una lista di JoinItems
-  TioJoins = class(TioBaseTableCompanion, IioJoins)
+  TioJoins = class(TInterfacedObject, IioJoins)
   strict private
     FJoinList: TioJoinItemList;
   public
     constructor Create;
     destructor Destroy; override;
-    procedure Add(AJoinItem: IioJoinItem);
-    function GetSql: String;
+    procedure Add(AJoinItem:IioJoinItem);
+    function GetSql(const ASelfClassName: String): String;
   end;
   // ---------------------------------------------------------------------------
   // END: JOIN
   // ===========================================================================
 
+
   // Classe che incapsula le informazioni per la funzione ClassFromField
-  TioClassFromField = class(TioBaseTableCompanion, IioClassFromField)
+  TioClassFromField = class (TInterfacedObject, IioClassFromField)
   strict private
+    FClassName: String;
+    FQualifiedClassName: String;
     FAncestors: String;
     FSqlFieldName: String;
   public
-    constructor Create(ASqlFieldName: String);
-    procedure SetTable(const ATable: IioContextTable); override;
+    constructor Create(ASqlFieldName, AClassName, AQualifiedClassName, AAncestors: String);
     function GetFieldName: string;
     function GetSqlFieldName: string;
     function GetSqlParamName: String;
     function GetValue: String;
     function GetSqlValue: string;
-    function GetClassName: String;  // NB: I metodi ci sono anche nella parte implementation (commentati)
-    function GetQualifiedClassName: String;  // NB: I metodi ci sono anche nella parte implementation (commentati)
-    function QualifiedClassNameFromClassInfoFieldValue(AValue: String): String;
+    function GetClassName: String;
+    function GetQualifiedClassName: String;
+    function QualifiedClassNameFromClassInfoFieldValue(AValue:String): String;
   end;
 
   // Classe che incapsula le info sulla tabella
-  TioContextTable = class(TioSqlItem, IioContextTable)
+  TioContextTable = class (TioSqlItem, IioContextTable)
   strict private
     FMapMode: TioMapModeType;
     FClassFromField: IioClassFromField;
     FJoins: IioJoins;
     FGroupBy: IioGroupBy;
-    FConnectionDefName_DoNotCallDirectly: String;
+    FConnectionDefName: String;
     FKeyGenerator: String;
     FRttiType: TRttiInstanceType;
     FIndexList: TioIndexList;
     FAutoCreateDB: Boolean;
   public
-    constructor Create(const ASqlText, AKeyGenerator: String; const AClassFromField: IioClassFromField; const AJoins: IioJoins;
-      const AGroupBy: IioGroupBy; const AConnectionDefName: String; const AMapMode: TioMapModeType; const AAutoCreateDB: Boolean;
-      const ARttiType: TRttiInstanceType); reintroduce; overload;
+    constructor Create(const ASqlText, AKeyGenerator:String; const AClassFromField:IioClassFromField;
+    const AJoins:IioJoins; const AGroupBy:IioGroupBy; const AConnectionDefName:String;
+    const AMapMode:TioMapModeType; const AAutoCreateDB:Boolean; const ARttiType:TRttiInstanceType); reintroduce; overload;
     destructor Destroy; override;
     function GetSql: String; override;
     function GetClassFromField: IioClassFromField;
@@ -147,12 +138,10 @@ type
     function GetMapMode: TioMapModeType;
     function GetRttiType: TRttiInstanceType;
     function GetAutoCreateDB: Boolean;
-    function GetClassName: String;
-    function GetQualifiedClassName: String;
     // IndexList
     function IndexListExists: Boolean;
-    function GetIndexList(AAutoCreateIfUnassigned: Boolean): TioIndexList;
-    procedure SetIndexList(AIndexList: TioIndexList);
+    function GetIndexList(AAutoCreateIfUnassigned:Boolean): TioIndexList;
+    procedure SetIndexList(AIndexList:TioIndexList);
   end;
 
 implementation
@@ -162,28 +151,20 @@ uses
 
 { TioContextTable }
 
-constructor TioContextTable.Create(const ASqlText, AKeyGenerator: String; const AClassFromField: IioClassFromField;
-  const AJoins: IioJoins; const AGroupBy: IioGroupBy; const AConnectionDefName: String; const AMapMode: TioMapModeType;
-  const AAutoCreateDB: Boolean; const ARttiType: TRttiInstanceType);
+constructor TioContextTable.Create(const ASqlText, AKeyGenerator:String; const AClassFromField:IioClassFromField;
+    const AJoins:IioJoins; const AGroupBy:IioGroupBy; const AConnectionDefName:String;
+    const AMapMode:TioMapModeType; const AAutoCreateDB:Boolean; const ARttiType:TRttiInstanceType);
 begin
   inherited Create(ASqlText);
   FKeyGenerator := AKeyGenerator;
-  FConnectionDefName_DoNotCallDirectly := AConnectionDefName;
+  FClassFromField := AClassFromField;
+  FJoins := AJoins;
+  FGroupBy := AGroupBy;
+  FConnectionDefName := AConnectionDefName;
   FMapMode := AMapMode;
   FRttiType := ARttiType;
   FIndexList := nil;
   FAutoCreateDB := AAutoCreateDB;
-  // Set ClassFromField
-  FClassFromField := AClassFromField;
-  if Assigned(FClassFromField) then
-    FClassFromField.SetTable(Self);
-  // Set Joins
-  FJoins := AJoins;
-  FJoins.SetTable(Self);
-  // SetGroupBy
-  FGroupBy := AGroupBy;
-  if Assigned(FGroupBy) then
-    FGroupBy.SetTable(Self);
 end;
 
 destructor TioContextTable.Destroy;
@@ -203,17 +184,9 @@ begin
   Result := FClassFromField;
 end;
 
-function TioContextTable.GetClassName: String;
-begin
-  Result := FRttiType.Name;
-end;
-
 function TioContextTable.GetConnectionDefName: String;
 begin
-  if FConnectionDefName_DoNotCallDirectly.IsEmpty then
-    Result := TioDBFActory.ConnectionManager.GetDefaultConnectionName
-  else
-    Result := FConnectionDefName_DoNotCallDirectly;
+  Result := FConnectionDefName;
 end;
 
 function TioContextTable.GetGroupBy: IioGroupBy;
@@ -221,7 +194,7 @@ begin
   Result := FGroupBy;
 end;
 
-function TioContextTable.GetIndexList(AAutoCreateIfUnassigned: Boolean): TioIndexList;
+function TioContextTable.GetIndexList(AAutoCreateIfUnassigned:Boolean): TioIndexList;
 begin
   if AAutoCreateIfUnassigned and (not Self.IndexListExists) then
     FIndexList := TioIndexList.Create(False);
@@ -243,11 +216,6 @@ begin
   Result := FMapMode;
 end;
 
-function TioContextTable.GetQualifiedClassName: String;
-begin
-  Result := FRttiType.QualifiedName;
-end;
-
 function TioContextTable.GetRttiType: TRttiInstanceType;
 begin
   Result := FRttiType;
@@ -256,7 +224,7 @@ end;
 function TioContextTable.GetSql: String;
 begin
   Result := inherited;
-  Result := TioDBFActory.SqlDataConverter(GetConnectionDefName).FieldNameToSqlFieldName(Result);
+  Result := TioDbFactory.SqlDataConverter.FieldNameToSqlFieldName(Result);
 end;
 
 function TioContextTable.IndexListExists: Boolean;
@@ -268,6 +236,7 @@ function TioContextTable.IsClassFromField: Boolean;
 begin
   Result := Assigned(FClassFromField);
 end;
+
 
 procedure TioContextTable.SetIndexList(AIndexList: TioIndexList);
 begin
@@ -281,15 +250,17 @@ end;
 
 { TioClassFromField }
 
-constructor TioClassFromField.Create(ASqlFieldName: String);
+constructor TioClassFromField.Create(ASqlFieldName, AClassName, AQualifiedClassName, AAncestors: String);
 begin
   FSqlFieldName := ASqlFieldName;
-  FAncestors := '';
+  FClassName := AClassName;
+  FQualifiedClassName := AQualifiedClassName;
+  FAncestors := AAncestors;
 end;
 
 function TioClassFromField.GetClassName: String;
 begin
-  Result := Table.GetClassName;
+  Result := FClassName;
 end;
 
 function TioClassFromField.GetFieldName: string;
@@ -299,12 +270,12 @@ end;
 
 function TioClassFromField.GetQualifiedClassName: String;
 begin
-  Result := Table.GetQualifiedClassName;
+  Result := FQualifiedClassName;
 end;
 
 function TioClassFromField.GetSqlFieldName: string;
 begin
-  Result := TioDBFActory.SqlDataConverter(Table.GetConnectionDefName).FieldNameToSqlFieldName(FSqlFieldName);
+  Result := TioDbFactory.SqlDataConverter.FieldNameToSqlFieldName(FSqlFieldName);
 end;
 
 function TioClassFromField.GetSqlParamName: String;
@@ -314,37 +285,25 @@ end;
 
 function TioClassFromField.GetSqlValue: string;
 begin
-  Result := TioDBFActory.SqlDataConverter(Table.GetConnectionDefName).StringToSQL(Self.GetValue);
+  Result := TioDbFactory.SqlDataConverter.StringToSQL(Self.GetValue);
 end;
 
 function TioClassFromField.GetValue: String;
 begin
-  Result := Table.GetQualifiedClassName + ';' + Self.FAncestors;
+  Result := Self.FQualifiedClassName + ';' + Self.FAncestors;
 end;
 
-function TioClassFromField.QualifiedClassNameFromClassInfoFieldValue(AValue: String): String;
-begin
-  Result := Copy(AValue, 0, Pos(';', AValue) - 1);
-end;
 
-procedure TioClassFromField.SetTable(const ATable: IioContextTable);
-var
-  LRttiType: TRttiType;
+function TioClassFromField.QualifiedClassNameFromClassInfoFieldValue(
+  AValue: String): String;
 begin
-  inherited;
-  LRttiType := Table.GetRttiType;
-  // Loop for all ancestors
-  repeat
-  begin
-    FAncestors := FAncestors + '<' + LRttiType.Name + '>';
-    LRttiType := LRttiType.BaseType;
-  end;
-  until not Assigned(LRttiType);
+  Result := Copy(AValue,0,Pos(';',AValue)-1);
 end;
 
 { TioJoin }
 
-constructor TioJoinItem.Create(const AJoinType: TioJoinType; AJoinClassRef: TioClassRef; AJoinCondition: String);
+constructor TioJoinItem.Create(const AJoinType: TioJoinType;
+  AJoinClassRef: TioClassRef; AJoinCondition: String);
 begin
   inherited Create;
   FJoinType := AJoinType;
@@ -367,9 +326,9 @@ begin
   Result := Self.FJoinType;
 end;
 
-function TioJoinItem.GetSql(const AConnectionDefName: String): String;
+function TioJoinItem.GetSql: String;
 begin
-  Result := TioDBFActory.SqlGenerator(AConnectionDefName).GenerateSqlJoinSectionItem(Self);
+  Result := TioDBFactory.SqlGenerator.GenerateSqlJoinSectionItem(Self);
 end;
 
 { TioJoins }
@@ -390,13 +349,13 @@ begin
   inherited;
 end;
 
-function TioJoins.GetSql: String;
+function TioJoins.GetSql(const ASelfClassName: String): String;
 var
-  AJoinItem: IioJoinItem;
+  aJoinItem: IioJoinItem;
 begin
   Result := '';
-  for AJoinItem in FJoinList do
-    Result := Result + #13 + TioSqlTranslator.Translate(Table.GetClassName, Table.GetClassName);
+  for aJoinItem in FJoinList do
+    Result := Result + #13 + TioSqlTranslator.Translate(aJoinItem.GetSql, ASelfClassName);
 end;
 
 { TioGroupBy }
@@ -406,23 +365,11 @@ begin
   FSqlText := ASqlText;
 end;
 
-function TioGroupBy.GetSql: String;
+function TioGroupBy.GetSql(const ASelfClassName: String): String;
 begin
-  Result := TioSqlTranslator.Translate(FSqlText, Table.GetClassName).Trim;
-  if Result <> '' then
-    Result := 'GROUP BY ' + Result;
-end;
-
-{ TioBaseTableCompanion }
-
-procedure TioBaseTableCompanion.SetTable(const ATable: IioContextTable);
-begin
-  FTable := ATable as TioContextTable;
-end;
-
-function TioBaseTableCompanion.Table: TioContextTable;
-begin
-  Result := FTable;
+  Result := TioSqlTranslator.Translate(FSqlText, ASelfClassName).Trim;
+  if Result <> '' then Result := 'GROUP BY ' + Result;
+  
 end;
 
 end.

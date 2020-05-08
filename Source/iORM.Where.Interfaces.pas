@@ -84,8 +84,7 @@ type
     procedure ToMemTable(const AMemTable:TFDMemTable); overload;
 
     function _ToObjectInternalByClassOnly(const AObj:TObject=nil): TObject;
-    function ToObject(const AObj:TObject=nil): TObject; overload;
-    function ToObject(const AIntf:IInterface): TObject; overload;
+    function ToObject(const AObj:TObject=nil): TObject;
 
     procedure ToList(const AList:TObject); overload;
     function ToList(const AListRttiType:TRttiType; const AOwnsObjects:Boolean=True): TObject; overload;
@@ -113,6 +112,8 @@ type
     function SetDetailsContainer(ADetailsContainer: IioWhereDetailsContainer): IioWhere;
     function Lazy(const ALazyEnabled:Boolean=True): IioWhere;
     function IsLazy: Boolean;
+    function ConnectionName(const AConnectionName:String): IioWhere;
+    function GetConnectionName: String;
     // --------------------------------------------------------------
     // ------ Logic relations
     function _And: IioWhere; overload;
@@ -227,6 +228,7 @@ type
     function DisableClassFromField: IioWhere<T>;
     function SetDetailsContainer(ADetailsContainer: IioWhereDetailsContainer): IioWhere<T>;
     function Lazy(const ALazyEnabled:Boolean=True): IioWhere<T>;
+    function ConnectionName(const AConnectionName:String): IioWhere<T>;
     // ------ Logic relations
     function _And: IioWhere<T>; overload;
     function _Or: IioWhere<T>; overload;
@@ -304,6 +306,5 @@ type
 implementation
 
 end.
-
 
 

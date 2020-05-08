@@ -8,7 +8,7 @@ object MainForml: TMainForml
   FormFactor.Height = 900
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
-  DesignerMasterStyle = 0
+  DesignerMasterStyle = 2
   object TabControl1: TTabControl
     Align = Client
     FullSize = True
@@ -29,8 +29,8 @@ object MainForml: TMainForml
         item
         end>
       IsSelected = True
-      Size.Width = 8.000000000000000000
-      Size.Height = 8.000000000000000000
+      Size.Width = 11.000000000000000000
+      Size.Height = 11.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
       TabOrder = 0
@@ -61,6 +61,7 @@ object MainForml: TMainForml
           Size.PlatformDefault = False
           StyleLookup = 'refreshtoolbutton'
           TabOrder = 2
+          Visible = True
         end
         object btPersist: TButton
           Action = acPersist
@@ -72,6 +73,7 @@ object MainForml: TMainForml
           Size.PlatformDefault = False
           StyleLookup = 'organizetoolbutton'
           TabOrder = 3
+          Visible = True
         end
         object btNew: TButton
           Action = acNew
@@ -84,6 +86,7 @@ object MainForml: TMainForml
           Size.PlatformDefault = False
           StyleLookup = 'additembutton'
           TabOrder = 5
+          Visible = True
         end
       end
       object ListView1: TListView
@@ -107,8 +110,8 @@ object MainForml: TMainForml
         item
         end>
       IsSelected = False
-      Size.Width = 8.000000000000000000
-      Size.Height = 8.000000000000000000
+      Size.Width = 11.000000000000000000
+      Size.Height = 11.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
       TabOrder = 0
@@ -140,6 +143,7 @@ object MainForml: TMainForml
           Size.Height = 44.000000000000000000
           Size.PlatformDefault = False
           StyleLookup = 'backtoolbutton'
+          Visible = True
         end
         object btDelete: TButton
           Action = acDelete
@@ -152,6 +156,7 @@ object MainForml: TMainForml
           Size.PlatformDefault = False
           StyleLookup = 'trashtoolbutton'
           TabOrder = 5
+          Visible = True
         end
       end
       object lblName: TLabel
@@ -165,7 +170,6 @@ object MainForml: TMainForml
         TextSettings.Font.Size = 14.000000000000000000
         TextSettings.FontColor = claGray
         Text = 'Pizza'
-        TabOrder = 1
       end
       object imgContact: TImage
         MultiResBitmap = <
@@ -285,7 +289,6 @@ object MainForml: TMainForml
         TextSettings.Font.Size = 18.000000000000000000
         TextSettings.FontColor = claGray
         Text = 'Bitmap28'
-        TabOrder = 3
       end
       object edName: TEdit
         Touch.InteractiveGestures = [LongTap, DoubleTap]
@@ -308,6 +311,7 @@ object MainForml: TMainForml
         Size.PlatformDefault = False
         StyleLookup = 'donetoolbutton'
         TabOrder = 5
+        Visible = True
       end
       object Button6: TButton
         Position.X = 184.000000000000000000
@@ -356,12 +360,6 @@ object MainForml: TMainForml
     ioViewDataType = dtList
     ioWhereDetailsFromDetailAdapters = False
     ioAutoRefreshOnNotification = arEnabledNoReload
-    ioOnReceiveSelectionAutoEdit = False
-    ioOnReceiveSelectionAutoPost = False
-    ioOnReceiveSelectionAutoPersist = False
-    ioPropagateEdit = False
-    ioPropagatePost = False
-    ioPropagatePersist = False
     Left = 232
     Top = 208
   end
@@ -438,6 +436,7 @@ object MainForml: TMainForml
     end
   end
   object SQLiteConn: TioSQLiteConnectionDef
+    AutoCreateDatabase = True
     Database = '..\..\..\SamplesData\Pizza.db'
     DatabaseStdFolder = sfUndefined
     DefaultConnection = True

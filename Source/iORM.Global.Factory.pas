@@ -38,7 +38,7 @@ unit iORM.Global.Factory;
 interface
 
 uses
-  iORM.Context.Factory, iORM.DB.Factory,
+  iORM.Context.Factory, iORM.DB.DBCreator.Factory, iORM.DB.Factory,
   iORM.DuckTyped.Factory, iORM.LazyLoad.Factory,
   iORM.LiveBindings.Factory, iORM.ObjectsForge.Factory,
   iORM.RttiContext.Factory, iORM.MVVM.Factory, iORM.Containers.Factory,
@@ -48,6 +48,7 @@ uses
 Type
 
   TioContextFactoryRef = class of TioContextFactory;
+  TioDBCreatorFactoryRef = class of TioDBCreatorFactory;
   TioDBBuilderFactoryRef = class of TioDBBuilderFactory;
   TioDBFactoryRef = class of TioDBFactory;
   TioDuckTypedFactoryRef = class of TioDuckTypedFactory;
@@ -63,6 +64,7 @@ Type
   TioGlobalFactory = class
   public
     class function ContextFactory: TioContextFactoryRef;
+    class function DBCreatorFactory: TioDBCreatorFactoryRef;
     class function DBBuilderFactory: TioDBBuilderFactoryRef;
     class function DBFactory: TioDBFactoryRef;
     class function DuckTypedFactory: TioDuckTypedFactoryRef;
@@ -95,6 +97,11 @@ end;
 class function TioGlobalFactory.DBBuilderFactory: TioDBBuilderFactoryRef;
 begin
   Result := TioDBBuilderFactory;
+end;
+
+class function TioGlobalFactory.DBCreatorFactory: TioDBCreatorFactoryRef;
+begin
+  Result := TioDBCreatorFactory;
 end;
 
 class function TioGlobalFactory.DBFactory: TioDBFactoryRef;

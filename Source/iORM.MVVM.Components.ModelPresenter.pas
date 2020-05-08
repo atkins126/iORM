@@ -1,38 +1,3 @@
-{***************************************************************************}
-{                                                                           }
-{           iORM - (interfaced ORM)                                         }
-{                                                                           }
-{           Copyright (C) 2015-2016 Maurizio Del Magno                      }
-{                                                                           }
-{           mauriziodm@levantesw.it                                         }
-{           mauriziodelmagno@gmail.com                                      }
-{           https://github.com/mauriziodm/iORM.git                          }
-{                                                                           }
-{                                                                           }
-{***************************************************************************}
-{                                                                           }
-{  This file is part of iORM (Interfaced Object Relational Mapper).         }
-{                                                                           }
-{  Licensed under the GNU Lesser General Public License, Version 3;         }
-{  you may not use this file except in compliance with the License.         }
-{                                                                           }
-{  iORM is free software: you can redistribute it and/or modify             }
-{  it under the terms of the GNU Lesser General Public License as published }
-{  by the Free Software Foundation, either version 3 of the License, or     }
-{  (at your option) any later version.                                      }
-{                                                                           }
-{  iORM is distributed in the hope that it will be useful,                  }
-{  but WITHOUT ANY WARRANTY; without even the implied warranty of           }
-{  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            }
-{  GNU Lesser General Public License for more details.                      }
-{                                                                           }
-{  You should have received a copy of the GNU Lesser General Public License }
-{  along with iORM.  If not, see <http://www.gnu.org/licenses/>.            }
-{                                                                           }
-{***************************************************************************}
-
-
-
 unit iORM.MVVM.Components.ModelPresenter;
 
 interface
@@ -63,15 +28,7 @@ type
     FMasterPropertyName: String;
     FAutoRefreshOnNotification: TioAutoRefreshType;
     FAutoPost: Boolean;
-    // Selectors
     FSelectorFor: TioModelPresenter;
-    FOnReceiveSelectionAutoEdit: Boolean;
-    FOnReceiveSelectionAutoPost: Boolean;
-    FOnReceiveSelectionAutoPersist: Boolean;
-    // Edit/Insert/Post/Cancel propagation
-    FPropagateEdit: Boolean;
-    FPropagatePost: Boolean;
-    FPropagatePersist: Boolean;
     // Questà è una collezione dove eventuali ModelPresenters di dettaglio
     // si registrano per rendere nota la loro esistenza al Master. Sarà poi
     // usata dal Master per fare in modo che, quando viene richiesta la creazione
@@ -92,11 +49,13 @@ type
     FonBeforeSelectionInterface: TioBSABeforeAfterSelectionInterfaceEvent;
     FonSelectionInterface: TioBSASelectionInterfaceEvent;
     FonAfterSelectionInterface: TioBSABeforeAfterSelectionInterfaceEvent;
+    FConnectionName: String;
     // Methods
     procedure _CreateAdapter(const ADataObject: TObject; const AOwnsObject: Boolean);
     procedure DoNotify(ANotification: IioBSANotification);
     procedure WhereOnChangeEventHandler(Sender: TObject);
     procedure SetAutoLoadData(const Value: Boolean);
+    procedure SetConnectionName(const Value: String);
   protected
     procedure Loaded; override;
     // Selectors related event for TObject selection
@@ -180,7 +139,7 @@ type
     function CurrentAs<T>: T;
     function CurrentMasterObject: TObject;
     function CurrentMasterObjectAs<T>: T;
-    procedure Refresh(const AReloadData:Boolean; const ANotify:Boolean=True); overload;
+    procedure Refresh(const AReloadData: Boolean); overload;
     procedure PersistCurrent;
     procedure PersistAll;
     procedure Append; overload;
@@ -196,7 +155,7 @@ type
     function GetDetailBindSourceAdapter(const AOwner: TComponent; const AMasterPropertyName: String; const AWhere: IioWhere = nil): IioActiveBindSourceAdapter;
     function GetNaturalObjectBindSourceAdapter(const AOwner: TComponent): IioActiveBindSourceAdapter;
     procedure Select<T>(AInstance: T; ASelectionType: TioSelectionType = TioSelectionType.stAppend);
-    procedure SelectCurrent(ASelectionType: TioSelectionType = TioSelectionType.stAppend);
+    procedure SelectCurrent<T>(ASelectionType: TioSelectionType = TioSelectionType.stAppend);
     // Show current record/instance of a ModelPresenter (even passing ViewContextProvider or an already created ViewContext)
     procedure ShowCurrent(const AAlias: String = ''; const AVCProviderName: String = ''); overload;
     procedure ShowCurrent(const AVCProvider: TioViewContextProvider; const AAlias: String = ''); overload;
@@ -205,12 +164,6 @@ type
     procedure ShowEach(const AAlias: String = ''; const AVCProviderName: String = ''); overload;
     procedure ShowEach(const AVCProvider: TioViewContextProvider; const AAlias: String = ''); overload;
     procedure ShowEach(const AViewContext: TComponent; const AAlias: String = ''); overload;
-    // Propagation
-    procedure _ReceivePropagateEdit(const ASenderBindSource: TioModelPresenter);
-    procedure _ReceivePropagatePost(const ASenderBindSource: TioModelPresenter);
-    procedure _ReceivePropagateCancel(const ASenderBindSource: TioModelPresenter);
-    procedure _ReceivePropagatePersistCurrent(const ASenderBindSource: TioModelPresenter);
-    procedure _ReceivePropagatePersistAll(const ASenderBindSource: TioModelPresenter);
     // ----------------------------------------------------------------------------------------------------------------------------
     // DataObject
     procedure ClearDataObject;
@@ -249,6 +202,9 @@ type
     property AutoPost: Boolean read GetAutoPost write SetAutoPost;
     property AutoRefreshOnNotification: TioAutoRefreshType read FAutoRefreshOnNotification write FAutoRefreshOnNotification;
     property MasterPresenter: TioModelPresenter read FMasterPresenter write FMasterPresenter;
+    //start O.B. 08/08/2019 Gestione delle multiconnessioni
+    property ConnectionName : String read FConnectionName write SetConnectionName;
+    //end O.B. 08/08/2019 Gestione delle multiconnessioni
     property MasterPropertyName: String read FMasterPropertyName write FMasterPropertyName;
     property OrderBy: String read FOrderBy Write SetOrderBy;
     property TypeAlias: String read FTypeAlias write SetTypeAlias;
@@ -256,15 +212,7 @@ type
     property ViewDataType: TioViewDataType read FViewDataType write FViewDataType;
     property WhereDetailsFromDetailAdapters: Boolean read FWhereDetailsFromDetailAdapters write SetWhereDetailsFromDetailAdapters;
     property WhereStr: TStrings read FWhereStr write SetWhereStr;
-    // Selectors
     property SelectorFor: TioModelPresenter read FSelectorFor write FSelectorFor;
-    property ioOnReceiveSelectionAutoEdit: Boolean read FOnReceiveSelectionAutoEdit write FOnReceiveSelectionAutoEdit;
-    property ioOnReceiveSelectionAutoPost: Boolean read FOnReceiveSelectionAutoPost write FOnReceiveSelectionAutoPost;
-    property ioOnReceiveSelectionAutoPersist: Boolean read FOnReceiveSelectionAutoPersist write FOnReceiveSelectionAutoPersist;
-    // Edit/Insert/Post/Cancel propagation
-    property ioPropagateEdit: Boolean read FPropagateEdit write FPropagateEdit;
-    property ioPropagatePost: Boolean read FPropagatePost write FPropagatePost;
-    property ioPropagatePersist: Boolean read FPropagatePersist write FPropagatePersist;
   end;
 
 implementation
@@ -344,15 +292,7 @@ begin
   FViewDataType := TioViewDataType.dtList;
   FWhere := nil;
   FWhereDetailsFromDetailAdapters := False;
-  // Selectors
   FSelectorFor := nil;
-  FOnReceiveSelectionAutoEdit := False;
-  FOnReceiveSelectionAutoPost := False;
-  FOnReceiveSelectionAutoPersist := False;
-  // Edit/Insert/Post/Cancel propagation
-  FPropagateEdit := False;
-  FPropagatePost := False;
-  FPropagatePersist := False;
   // Set even an onChange event handler
   FWhereStr := TStringList.Create;
   SetWhereStr(FWhereStr); // set TStringList.onChange event handler
@@ -374,7 +314,7 @@ end;
 
 function TioModelPresenter.Current: TObject;
 begin
-  if CheckAdapter(True) then
+  if CheckAdapter then
     Result := BindSourceAdapter.Current
   else
     Result := nil;
@@ -417,13 +357,6 @@ procedure TioModelPresenter.DoAfterSelection(var ASelected: IInterface;
 begin
   if Assigned(FonAfterSelectionInterface) then
     FonAfterSelectionInterface(Self, ASelected, ASelectionType);
-  // SelectorAutoEdit/Post/Persist
-  if FOnReceiveSelectionAutoEdit then
-    Edit;
-  if FOnReceiveSelectionAutoPost then
-    PostIfEditing;
-  if FOnReceiveSelectionAutoPersist then
-    PersistCurrent;
 end;
 
 procedure TioModelPresenter.DoAfterSelection(var ASelected: TObject;
@@ -431,13 +364,6 @@ procedure TioModelPresenter.DoAfterSelection(var ASelected: TObject;
 begin
   if Assigned(FonAfterSelectionObject) then
     FonAfterSelectionObject(Self, ASelected, ASelectionType);
-  // SelectorAutoEdit/Post/Persist
-  if FOnReceiveSelectionAutoEdit then
-    Edit;
-  if FOnReceiveSelectionAutoPost then
-    PostIfEditing;
-  if FOnReceiveSelectionAutoPersist then
-    PersistCurrent;
 end;
 
 procedure TioModelPresenter.DoBeforeSelection(var ASelected: IInterface;
@@ -461,13 +387,13 @@ begin
     OnNotify(Self, ANotification);
   // If enabled perform an AutoRefresh operation
   if (Self.AutoRefreshOnNotification > arDisabled) and (Self.State <> TBindSourceAdapterState.seInactive) then
-    Self.Refresh(Self.AutoRefreshOnNotification = TioAutoRefreshType.arEnabledReload, False);
+    Self.Refresh(Self.AutoRefreshOnNotification = TioAutoRefreshType.arEnabledReload);
 end;
 
 procedure TioModelPresenter.DoSelection(var ASelected: TObject;
   var ASelectionType: TioSelectionType; var ADone: Boolean);
 begin
-  if Assigned(FonSelectionObject) then
+  if Assigned(FonAfterSelectionObject) then
     FonSelectionObject(Self, ASelected, ASelectionType, ADone);
 end;
 
@@ -626,7 +552,8 @@ end;
 function TioModelPresenter.GetNaturalObjectBindSourceAdapter
   (const AOwner: TComponent): IioActiveBindSourceAdapter;
 begin
-  if not Supports(GetBindSourceAdapter.NewNaturalObjectBindSourceAdapter(AOwner), IioActiveBindSourceAdapter, Result) then
+  if not Supports(GetBindSourceAdapter.NewNaturalObjectBindSourceAdapter
+    (AOwner), IioActiveBindSourceAdapter, Result) then
     Result := nil;
 end;
 
@@ -718,16 +645,19 @@ begin
   inherited;
 end;
 
-procedure TioModelPresenter.Select<T>(AInstance: T; ASelectionType: TioSelectionType);
+procedure TioModelPresenter.Select<T>(AInstance: T;
+  ASelectionType: TioSelectionType);
 var
   LDestBSA: IioActiveBindSourceAdapter;
   LValue: TValue;
 begin
   // Some checks
   if not Assigned(FSelectorFor) then
-    raise EioException.Create(Self.ClassName, 'MakeSelection', '"SelectorFor" property not assigned.');
+    raise EioException.Create(Self.ClassName, 'MakeSelection',
+      '"SelectorFor" property not assigned.');
   if not FSelectorFor.CheckAdapter then
-    raise EioException.Create(Self.ClassName, 'MakeSelection', 'Selection destination ActiveBindSourceAdapter, non present.');
+    raise EioException.Create(Self.ClassName, 'MakeSelection',
+      'Selection destination ActiveBindSourceAdapter, non present.');
   // Get the selection destination BindSourceAdapter
   LDestBSA := FSelectorFor.BindSourceAdapter;
   // Encapsulate the SelectedInstance into a TValue then assign it
@@ -740,23 +670,18 @@ begin
   else if LValue.Kind = TTypeKind.tkClass then
     LDestBSA.ReceiveSelection(LValue.AsObject, ASelectionType)
   else
-    raise EioException.Create(Self.ClassName, 'Select<T>', 'Wrong LValue kind.');
+    raise EioException.Create(Self.ClassName, 'Select<T>',
+      'Wrong LValue kind.');
 end;
 
-procedure TioModelPresenter.SelectCurrent(ASelectionType: TioSelectionType);
-var
-  LDestBSA: IioActiveBindSourceAdapter;
+procedure TioModelPresenter.SelectCurrent<T>(ASelectionType: TioSelectionType);
 begin
   // Some checks
   if not CheckAdapter then
-    raise EioException.Create(Self.ClassName, 'MakeSelection', 'ActiveBindSourceAdapter, not present.');
-  // Get the selection destination BindSourceAdapter
-  LDestBSA := FSelectorFor.BindSourceAdapter;
+    raise EioException.Create(Self.ClassName, 'MakeSelection',
+      'ActiveBindSourceAdapter, non present.');
   // Make the selection of current
-  if LDestBSA.IsInterfaceBSA then
-    Select<IInterface>(CurrentAs<IInterface>, ASelectionType)
-  else
-    Select<TObject>(Current, ASelectionType);
+  Select<T>(CurrentAs<T>, ASelectionType);
 end;
 
 function TioModelPresenter.CurrentMasterObject: TObject;
@@ -817,10 +742,10 @@ begin
     BindSourceAdapter.Prior;
 end;
 
-procedure TioModelPresenter.Refresh(const AReloadData:Boolean; const ANotify:Boolean=True);
+procedure TioModelPresenter.Refresh(const AReloadData: Boolean);
 begin
   if CheckAdapter then
-    FBindSourceAdapter.Refresh(AReloadData, ANotify);
+    FBindSourceAdapter.Refresh(AReloadData);
 end;
 
 procedure TioModelPresenter.RegisterDetailPresenter(const ADetailPresenter
@@ -880,8 +805,18 @@ begin
   FBindSourceAdapter.ioWhereDetailsFromDetailAdapters :=
     FWhereDetailsFromDetailAdapters;
   FBindSourceAdapter.ioWhere := FWhere;
+  FBindSourceAdapter.ioConnectionName := FConnectionName;
   // Register itself for notifications from BindSourceAdapter
   FBindSourceAdapter.SetBindSource(Self);
+end;
+
+procedure TioModelPresenter.SetConnectionName(const Value: String);
+begin
+  FConnectionName := Value;
+  // If the adapter is created and is an ActiveBindSourceAdapter then
+  //  update the where of the adapter also
+  if CheckAdapter then
+    FBindSourceAdapter.ioConnectionName := Value;
 end;
 
 procedure TioModelPresenter.SetBindSourceAdapter(const Value
@@ -1098,6 +1033,7 @@ begin
   else
   begin
     // Get the ActiveBindSourceAdapter
+    Where.ConnectionName(FConnectionName);
     SetBindSourceAdapter(TioLiveBindingsFactory.GetBSA(nil, TypeName, TypeAlias,
       Where, ViewDataType, AutoLoadData, ADataObject, AOwnsObject));
     // Force the creation of all the detail adapters (if exists)
@@ -1109,46 +1045,6 @@ begin
   end;
   // Init the BSA
   FBindSourceAdapter.ioAutoPost := FAutoPost;
-end;
-
-procedure TioModelPresenter._ReceivePropagateCancel(const ASenderBindSource: TioModelPresenter);
-begin
-  if IsDetail and FPropagatePost then
-    FMasterPresenter._ReceivePropagateCancel(Self)
-  else if ASenderBindSource <> Self then
-    CancelIfEditing;
-end;
-
-procedure TioModelPresenter._ReceivePropagateEdit(const ASenderBindSource: TioModelPresenter);
-begin
-  if IsDetail and FPropagateEdit then
-    FMasterPresenter._ReceivePropagateEdit(Self)
-  else if ASenderBindSource <> Self then
-    Edit;
-end;
-
-procedure TioModelPresenter._ReceivePropagatePersistAll(const ASenderBindSource: TioModelPresenter);
-begin
-  if IsDetail and FPropagatePersist then
-    FMasterPresenter._ReceivePropagatePersistAll(Self)
-  else if ASenderBindSource <> Self then
-    PersistAll;
-end;
-
-procedure TioModelPresenter._ReceivePropagatePersistCurrent(const ASenderBindSource: TioModelPresenter);
-begin
-  if IsDetail and FPropagatePersist then
-    FMasterPresenter._ReceivePropagatePersistCurrent(Self)
-  else if ASenderBindSource <> Self then
-    PersistCurrent;
-end;
-
-procedure TioModelPresenter._ReceivePropagatePost(const ASenderBindSource: TioModelPresenter);
-begin
-  if IsDetail and FPropagatePost then
-    FMasterPresenter._ReceivePropagatePost(Self)
-  else if ASenderBindSource <> Self then
-    PostIfEditing;
 end;
 
 procedure TioModelPresenter.Insert(AObject: IInterface);

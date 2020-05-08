@@ -46,6 +46,7 @@ type
   TioSQLDestination = class(TInterfacedObject, IioSQLDestination)
   private
     FSQL: String;
+    FConnectionName: String;
     FSelfClassName: String;
     FQualifiedFieldName: Boolean;
     FIgnoreObjNotExists: Boolean;
@@ -56,10 +57,12 @@ type
     procedure ToMemTable(const AMemTable:TFDMemTable); overload;
     function Execute(const AIgnoreObjNotExists:Boolean=False): Integer;
     // Informations
+    function Connection(const AConnectionName:String): IioSQLDestination;
     function SelfClass(const ASelfClassName:String): IioSQLDestination; overload;
     function SelfClass(const ASelfClassRef: TioClassRef): IioSQLDestination; overload;
     function QualifiedFieldName(const AQualifiedFieldName:Boolean=True): IioSQLDestination;
     // Getters
+    function GetConnectionName: String;
     function GetIgnoreObjNotExists: Boolean;
   public
     constructor Create(const ASQL:String); overload;
@@ -73,12 +76,20 @@ uses
 
 { TioSQLDestination }
 
+function TioSQLDestination.Connection(
+  const AConnectionName: String): IioSQLDestination;
+begin
+  Result := Self;
+  FConnectionName := AConnectionName;
+end;
+
 constructor TioSQLDestination.Create(const ASQL: String);
 begin
   inherited Create;
 
   TioApplication.CheckIfAbstractionLayerComponentExists;
 
+  FConnectionName := '';
   FSelfClassName := '';
   FQualifiedFieldName := False;
   FIgnoreObjNotExists := False;
@@ -95,7 +106,12 @@ end;
 function TioSQLDestination.Execute(const AIgnoreObjNotExists:Boolean): Integer;
 begin
   FIgnoreObjNotExists := AIgnoreObjNotExists;
-  TioStrategyFactory.GetStrategy('').SQLDest_Execute(Self);
+  TioStrategyFactory.GetStrategy(FConnectionName).SQLDest_Execute(Self);
+end;
+
+function TioSQLDestination.GetConnectionName: String;
+begin
+  Result := FConnectionName;
 end;
 
 function TioSQLDestination.GetIgnoreObjNotExists: Boolean;
@@ -129,7 +145,7 @@ end;
 
 procedure TioSQLDestination.ToMemTable(const AMemTable: TFDMemTable);
 begin
-  TioStrategyFactory.GetStrategy('').SQLDest_LoadDataSet(Self, AMemTable);
+  TioStrategyFactory.GetStrategy(FConnectionName).SQLDest_LoadDataSet(Self, AMemTable);
 end;
 
 end.

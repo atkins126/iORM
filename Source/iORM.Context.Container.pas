@@ -50,7 +50,7 @@ type
     FClassRef: TioClassRef;
     FMap: IioMap;
   public
-    constructor Create(const AClassRef:TioClassRef); overload;
+    constructor Create(AClassRef:TioClassRef); overload;
     function GetClassRef: TioClassRef;
     function GetMap: IioMap;
   end;
@@ -66,7 +66,7 @@ type
   private
     class var FInternalContainer: TioMapContainerInstance;
   protected
-    class function IsValidEntity_diAutoRegister(const AType:TRttiInstanceType): Boolean;
+    class function IsValidEntity_diAutoRegister(AType:TRttiInstanceType): Boolean;
     class procedure Init;
     class procedure SetPropertiesFieldData;
     class procedure SetPropertiesLoadSqlData;
@@ -74,12 +74,11 @@ type
   public
     class procedure Build;
     class procedure CleanUp;
-    class procedure Add(const AClassRef: TioClassRef);
+    class procedure Add(AClassRef: TioClassRef);
     class function GetContainer: TioMapContainerInstance;
-    class function Exist(const AClassName:String): Boolean;
-    class function GetClassRef(const AClassName:String): TioClassRef;
-    class function GetConnectionDefName(const AClassName:String): String;
-    class function GetMap(const AClassName:String; const RaiseAnExceptionIfNotFound:Boolean=True): IioMap;
+    class function Exist(AClassName:String): Boolean;
+    class function GetClassRef(AClassName:String): TioClassRef;
+    class function GetMap(AClassName:String; RaiseAnExceptionIfNotFound:Boolean=True): IioMap;
   end;
 
 implementation
@@ -90,10 +89,9 @@ uses
 
 { TioContextContainer }
 
-class procedure TioMapContainer.Add(const AClassRef: TioClassRef);
+class procedure TioMapContainer.Add(AClassRef: TioClassRef);
 begin
-  if Self.Exist(AClassRef.ClassName) then
-    Exit;
+  if Self.Exist(AClassRef.ClassName) then Exit;
   FInternalContainer.Add(AClassRef.ClassName, TioMapSlot.Create(AClassRef));
 end;
 
@@ -110,25 +108,16 @@ begin
   FInternalContainer.Free;
 end;
 
-class function TioMapContainer.Exist(const AClassName: String): Boolean;
+class function TioMapContainer.Exist(AClassName: String): Boolean;
 begin
   Result := FInternalContainer.ContainsKey(AClassName);
 end;
 
-class function TioMapContainer.GetClassRef(const AClassName: String): TioClassRef;
+class function TioMapContainer.GetClassRef(AClassName: String): TioClassRef;
 begin
-  if Self.Exist(AClassName) then
-    Result := FInternalContainer.Items[AClassName].GetClassRef
-  else
-    raise EioException.Create(Self.ClassName + ': class "' + AClassName + '" not found.');
-end;
-
-class function TioMapContainer.GetCOnnectionDefName(const AClassName: String): String;
-begin
-  if Self.Exist(AClassName) then
-    Result := FInternalContainer.Items[AClassName].GetMap.GetTable.GetConnectionDefName
-  else
-    raise EioException.Create(Self.ClassName + ': class "' + AClassName + '" not found.');
+  if Self.Exist(AClassName)
+    then Result := FInternalContainer.Items[AClassName].GetClassRef
+    else raise EioException.Create(Self.ClassName + ': class "' + AClassName + '" not found.');
 end;
 
 class function TioMapContainer.GetContainer: TioMapContainerInstance;
@@ -136,14 +125,13 @@ begin
   Result := FInternalContainer;
 end;
 
-class function TioMapContainer.GetMap(const AClassName: String; const RaiseAnExceptionIfNotFound:Boolean): IioMap;
+class function TioMapContainer.GetMap(AClassName: String; RaiseAnExceptionIfNotFound:Boolean): IioMap;
 begin
   Result := nil;
-  if Self.Exist(AClassName) then
-    Result := FInternalContainer.Items[AClassName].GetMap
-  else
-  if RaiseAnExceptionIfNotFound then
-    raise EioException.Create(Self.ClassName + ': class "' + AClassName + '" not found.');
+  if Self.Exist(AClassName)
+    then Result := FInternalContainer.Items[AClassName].GetMap
+    else if RaiseAnExceptionIfNotFound then
+      raise EioException.Create(Self.ClassName + ': class "' + AClassName + '" not found.');
 end;
 
 class procedure TioMapContainer.Init;
@@ -158,18 +146,16 @@ begin
   for Typ in Ctx.GetTypes do
   begin
     // Only instance type
-    if not Typ.IsInstance then
-      Continue;
+    if not Typ.IsInstance then Continue;
     Inst := Typ.AsInstance;
     // Only classes with explicit ioTable attribute
-    if not Self.IsValidEntity_diAutoRegister(Inst) then
-      Continue;
+    if not Self.IsValidEntity_diAutoRegister(Inst) then Continue;
     // Load the current class (entity) into the ContextContainer
     Self.Add(Inst.MetaclassType);
   end;
 end;
 
-class function TioMapContainer.IsValidEntity_diAutoRegister(const AType: TRttiInstanceType): Boolean;
+class function TioMapContainer.IsValidEntity_diAutoRegister(AType: TRttiInstanceType): Boolean;
 type
   TdiImplementsItem = record
     IID: TGUID;
@@ -271,8 +257,8 @@ var
   AMapSlot: TioMapSlot;
 begin
   // Calculate field data for all properties in the container
-  for AMapSlot in FInternalContainer.Values do
-    AMapSlot.GetMap.GetProperties.SetFieldData;
+  for AMapSlot in FInternalContainer.Values
+    do AMapSlot.GetMap.GetProperties.SetFieldData;
 end;
 
 class procedure TioMapContainer.SetPropertiesLoadSqlData;
@@ -280,8 +266,8 @@ var
   AMapSlot: TioMapSlot;
 begin
   // Calculate field data for all properties in the container
-  for AMapSlot in FInternalContainer.Values do
-    AMapSlot.GetMap.GetProperties.SetLoadSqlData;
+  for AMapSlot in FInternalContainer.Values
+    do AMapSlot.GetMap.GetProperties.SetLoadSqlData;
 end;
 
 class procedure TioMapContainer.SetRelationIndexes;
@@ -303,7 +289,7 @@ begin
   Result := FMap;
 end;
 
-constructor TioMapSlot.Create(const AClassRef:TioClassRef);
+constructor TioMapSlot.Create(AClassRef:TioClassRef);
 begin
   inherited Create;
   FClassRef := AClassRef;

@@ -67,6 +67,7 @@ type
     FDataSetLinkContainer: IioBSAToDataSetLinkContainer;
     FDeleteAfterCancel: Boolean;
     FonNotify: TioBSANotificationEvent;
+    FioConnectionName: String;
     // Async property
     function GetIoAsync: Boolean;
     procedure SetIoAsync(const Value: Boolean);
@@ -99,6 +100,8 @@ type
     // AutoLoadData
     procedure SetAutoLoadData(const Value: Boolean);
     function GetAutoLoadData: Boolean;
+    procedure SetioConnectionName(const Value: String);
+    function GetioConnectionName: String;
   protected
     function GetCanActivate: Boolean; override;
     // =========================================================================
@@ -119,7 +122,6 @@ type
     procedure DoAfterPostFields(AFields: TArray<TBindSourceAdapterField>); override;
     procedure DoBeforeCancel; override;
     procedure DoAfterCancel; override;
-    procedure DoAfterDelete; override;
     procedure DoAfterScroll; override;
     procedure DoNotify(ANotification:IioBSANotification);
     procedure DoBeforeSelection(var ASelected:IInterface; var ASelectionType:TioSelectionType);
@@ -132,7 +134,8 @@ type
     procedure InternalSetDataObject(const ADataObject:TObject; const AOwnsObject:Boolean=True); overload;
     procedure InternalSetDataObject(const ADataObject:IInterface; const AOwnsObject:Boolean=False); overload;
   public
-    constructor Create(const ATypeName, ATypeAlias: String; const AWhere:IioWhere; const AOwner: TComponent; const ADataObject: IInterface; const AutoLoadData: Boolean); overload;
+    constructor Create(const ATypeName, ATypeAlias: String; const AWhere: IioWhere;
+  const AOwner: TComponent; const ADataObject: IInterface; const AutoLoadData: Boolean; const AConnectionName : String = ''); overload;
     destructor Destroy; override;
     procedure SetMasterAdapterContainer(AMasterAdapterContainer:IioDetailBindSourceAdaptersContainer);
     procedure SetMasterProperty(AMasterProperty: IioContextProperty);
@@ -151,7 +154,7 @@ type
     procedure Insert(AObject:TObject); reintroduce; overload;
     procedure Insert(AObject:IInterface); reintroduce; overload;
     procedure Notify(Sender:TObject; ANotification:IioBSANotification); virtual;
-    procedure Refresh(const AReloadData:Boolean; const ANotify:Boolean=True); reintroduce; overload;
+    procedure Refresh(ReloadData:Boolean); reintroduce; overload;
     function DataObject: TObject;
     procedure SetDataObject(const ADataObject:TObject; const AOwnsObject:Boolean=True); overload;
     procedure SetDataObject(const ADataObject:IInterface; const AOwnsObject:Boolean=False); overload;
@@ -170,6 +173,7 @@ type
     property ioAsync:Boolean read GetIoAsync write SetIoAsync;
     property ioAutoPost:Boolean read GetioAutoPost write SetioAutoPost;
     property ioAutoPersist:Boolean read GetioAutoPersist write SetioAutoPersist;
+    property ioConnectionName: String read GetioConnectionName write SetioConnectionName;
     property ioWhere:IioWhere read GetIoWhere write SetIoWhere;
     property ioWhereDetailsFromDetailAdapters: Boolean read GetioWhereDetailsFromDetailAdapters write SetioWhereDetailsFromDetailAdapters;
     property ioViewDataType:TioViewDataType read GetIoViewDataType;
@@ -224,7 +228,7 @@ begin
 end;
 
 constructor TioActiveInterfaceObjectBindSourceAdapter.Create(const ATypeName, ATypeAlias: String; const AWhere: IioWhere;
-  const AOwner: TComponent; const ADataObject: IInterface; const AutoLoadData: Boolean);
+  const AOwner: TComponent; const ADataObject: IInterface; const AutoLoadData: Boolean; const AConnectionName : String);
 begin
   FAutoLoadData := AutoLoadData;
   FAsync := False;
@@ -233,6 +237,7 @@ begin
   inherited Create(AOwner, ADataObject, ATypeAlias, ATypeName);
   FLocalOwnsObject := False;  // Always false because it's a BSA for an interface (AutoRefCount)
   FWhere := AWhere;
+  FioConnectionName := AConnectionName;
   FWhereDetailsFromDetailAdapters := False;
   FDataSetLinkContainer := TioLiveBindingsFactory.BSAToDataSetLinkContainer;
   // Set Master & Details adapters reference
@@ -278,13 +283,6 @@ begin
   end;
 end;
 
-procedure TioActiveInterfaceObjectBindSourceAdapter.DoAfterDelete;
-begin
-  inherited;
-  // Send AfterDelete notification
-  TioCommonBSAPersistence.AfterDelete(Self);
-end;
-
 procedure TioActiveInterfaceObjectBindSourceAdapter.DoAfterPost;
 begin
   inherited;
@@ -295,13 +293,7 @@ begin
   //      In pratica se ioAutoPost=true esegue l'auto persist (se abilitato) nel metodo
   //      DoAfterPostFields e alla modifica di ogni singola proprietà, se invece
   //      ioAutoPost=False invece esegue il persist nel metodo DoAfterPost.
-  // NB: Mauri 03/03/2020 - Ho elininato la condizione perchè, come scritto anche sopra
-  //      non necessaria in quanto già di suo passava in questo evento (o nell'altro)
-  //      in maniera corretta. Inoltre facendo così e aggiungendo alla fine del metodo
-  //      TioBSADataSet.SetFieldData una chiamata a InternalActiveAdapter.Post (se AutoPost = True)
-  //      ho potuto dare anche un giusto comportamento del DataSet anche con Autopost = True
-  //      (precedentemente invece in pratica con faceva mai il post)
-//  if not Self.ioAutoPost then
+  if not Self.ioAutoPost then
     TioCommonBSAPersistence.Post(Self);
 end;
 
@@ -315,13 +307,7 @@ begin
   //      In pratica se ioAutoPost=true esegue l'auto persist (se abilitato) nel metodo
   //      DoAfterPostFields e alla modifica di ogni singola proprietà, se invece
   //      ioAutoPost=False invece esegue il persist nel metodo DoAfterPost.
-  // NB: Mauri 03/03/2020 - Ho elininato la condizione perchè, come scritto anche sopra
-  //      non necessaria in quanto già di suo passava in questo evento (o nell'altro)
-  //      in maniera corretta. Inoltre facendo così e aggiungendo alla fine del metodo
-  //      TioBSADataSet.SetFieldData una chiamata a InternalActiveAdapter.Post (se AutoPost = True)
-  //      ho potuto dare anche un giusto comportamento del DataSet anche con Autopost = True
-  //      (precedentemente invece in pratica con faceva mai il post.
-//  if Self.ioAutoPost then
+  if Self.ioAutoPost then
     TioCommonBSAPersistence.Post(Self);
 end;
 
@@ -370,8 +356,9 @@ var
 begin
   inherited;
   TioCommonBSAPersistence.Delete(Self, LAbort);
-  if LAbort then
-    Abort;
+{ TODO : Abort da eliminare??? }
+//  if LAbort then
+//    Abort;
 end;
 
 procedure TioActiveInterfaceObjectBindSourceAdapter.DoBeforeOpen;
@@ -540,6 +527,11 @@ begin
   Result := Self.AutoPost;
 end;
 
+function TioActiveInterfaceObjectBindSourceAdapter.GetioConnectionName: String;
+begin
+  result := FioConnectionName;
+end;
+
 function TioActiveInterfaceObjectBindSourceAdapter.GetIoViewDataType: TioViewDataType;
 begin
   Result := VIEW_DATA_TYPE;
@@ -657,16 +649,8 @@ begin
 end;
 
 procedure TioActiveInterfaceObjectBindSourceAdapter.ReceiveSelection(ASelected: TObject; ASelectionType: TioSelectionType);
-var
-  LSelectedAsIntf: IInterface;
 begin
-  // Questo ActiveBindSourceAdapter funziona solo con gli oggetti (no interfacce)
-  //  quindi chiama l'altra versione di metodo più adatta. IN questo modo
-  //  è possibile gestire la selezione anche se il selettore non è concorde
-  if Supports(ASelected, IInterface, LSelectedAsIntf) then
-    ReceiveSelection(LSelectedAsIntf, ASelectionType)
-  else
-    raise EioException.Create(Self.ClassName, 'ReceiveSelection', 'Selected instance does not support any interface.');
+  raise EioException.Create(Self.ClassName, 'ReceiveSelection', 'This ActiveBindSourceAdapter is for interface referenced instances only.');
 end;
 
 procedure TioActiveInterfaceObjectBindSourceAdapter.ReceiveSelection(ASelected: IInterface; ASelectionType: TioSelectionType);
@@ -681,27 +665,21 @@ begin
   DoAfterSelection(ASelected, ASelectionType);
 end;
 
-procedure TioActiveInterfaceObjectBindSourceAdapter.Refresh(const AReloadData:Boolean; const ANotify:Boolean=True);
+procedure TioActiveInterfaceObjectBindSourceAdapter.Refresh(ReloadData: Boolean);
 var
   PrecReloadData: Boolean;
 begin
   // Se il BindSourceAdapter è un dettaglio allora propaga il Refresh al suo Master
   //  questo perchè solo il master esegue realmente le query e quindi è quest'ultimo che
   //  deve gestire il refresh con reload.
-  if IsDetail and Assigned(FMasterAdaptersContainer) and AReloadData then
-    FMasterAdaptersContainer.GetMasterBindSourceAdapter.Refresh(AReloadData)
+  if IsDetail and Assigned(FMasterAdaptersContainer) and ReloadData then
+    FMasterAdaptersContainer.GetMasterBindSourceAdapter.Refresh(ReloadData)
   else
   begin
     PrecReloadData := FReloadDataOnRefresh;
-    Self.FReloadDataOnRefresh := AReloadData;
-    try
-      inherited Refresh;
-      // Send a notification to other ActiveBindSourceAdapters & BindSource
-      if ANotify then
-        Notify(Self, TioLiveBindingsFactory.Notification(Self, Current, ntAfterRefresh));
-    finally
-      Self.FReloadDataOnRefresh := PrecReloadData;
-    end;
+    Self.FReloadDataOnRefresh := ReloadData;
+    inherited Refresh;
+    Self.FReloadDataOnRefresh := PrecReloadData;
   end;
 end;
 
@@ -781,6 +759,11 @@ end;
 procedure TioActiveInterfaceObjectBindSourceAdapter.SetioAutoPost(const Value: Boolean);
 begin
   Self.AutoPost := Value;
+end;
+
+procedure TioActiveInterfaceObjectBindSourceAdapter.SetioConnectionName(const Value: String);
+begin
+  FioConnectionName := Value;
 end;
 
 procedure TioActiveInterfaceObjectBindSourceAdapter.SetIoWhere(

@@ -10,12 +10,6 @@ inherited ArticleViewModel: TArticleViewModel
     TypeName = 'IBase'
     ViewDataType = dtSingle
     WhereDetailsFromDetailAdapters = False
-    ioOnReceiveSelectionAutoEdit = False
-    ioOnReceiveSelectionAutoPost = False
-    ioOnReceiveSelectionAutoPersist = False
-    ioPropagateEdit = False
-    ioPropagatePost = False
-    ioPropagatePersist = False
     Left = 192
     Top = 24
   end

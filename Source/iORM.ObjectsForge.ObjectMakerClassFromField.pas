@@ -58,7 +58,8 @@ uses
 
 { TioObjectMakerClassFromField }
 
-class function TioObjectMakerClassFromField.MakeObject(const AContext: IioContext; const AQuery: IioQuery): TObject;
+class function TioObjectMakerClassFromField.MakeObject(const AContext: IioContext;
+  const AQuery: IioQuery): TObject;
 var
   Ctx: TRttiContext;
   Typ: TRttiInstanceType;
@@ -73,7 +74,7 @@ begin
   if not Assigned(Typ) then
     raise EioException.Create(Self.ClassName + ': RttiType not found (' + AClassName + ')');
   // Load object
-  Result := io.Load(Typ.MetaclassType).ByOID(AQuery.GetValue(AContext.GetProperties.GetIdProperty, AContext).AsInteger)
+  Result := io.Load(Typ.MetaclassType).ByOID(AQuery.GetValue(AContext.GetProperties.GetIdProperty).AsInteger)
                                            .SetDetailsContainer(AContext.Where.Details)  // Copy the details from the Where  of the Context
                                            .DisableClassFromField
                                            ._ToObjectInternalByClassOnly(AContext.DataObject);

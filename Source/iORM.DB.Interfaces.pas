@@ -156,8 +156,8 @@ type
     procedure Next;
     procedure Prior;
     function Eof: Boolean;
-    function GetValue(const AProperty: IioContextProperty; const AContext: IioContext): TValue;
-    function GetValueByFieldNameAsVariant(const AFieldName:String): Variant;
+    function GetValue(AProperty:IioContextProperty): TValue;
+    function GetValueByFieldNameAsVariant(AFieldName:String): Variant;
     procedure Open;
     procedure Close;
     function IsEmpty: Boolean;
@@ -166,14 +166,14 @@ type
     function ExecSQL: Integer;
     function GetSQL: TStrings;
     function Fields: TioFields;
-    function ParamByName(const AParamName:String): TioParam;
-    function ParamByProp(const AProp:IioContextProperty): TioParam;
-    procedure SetParamValueByContext(const AProp:IioContextProperty; const AContext:IioContext);
-    procedure SetParamValueToNull(const AProp:IioContextProperty; const AForceDataType:TFieldType=ftUnknown);
+    function ParamByName(AParamName:String): TioParam;
+    function ParamByProp(AProp:IioContextProperty): TioParam;
+    procedure SetParamValueByContext(AProp:IioContextProperty; AContext:IioContext);
+    procedure SetParamValueToNull(AProp:IioContextProperty; AForceDataType:TFieldType=ftUnknown);
     function Connection: IioConnection;
     procedure CleanConnectionRef;
-    function CreateBlobStream(const AProperty: IioContextProperty; const Mode: TBlobStreamMode): TStream;
-    procedure SaveStreamObjectToSqlParam(const AObj:TObject; const AProperty: IioContextProperty);
+    function CreateBlobStream(AProperty: IioContextProperty; Mode: TBlobStreamMode): TStream;
+    procedure SaveStreamObjectToSqlParam(AObj:TObject; AProperty: IioContextProperty);
     property SQL: TStrings read GetSQL;
   end;
 
@@ -250,11 +250,13 @@ type
     procedure ToMemTable(const AMemTable:TFDMemTable); overload;
     function Execute(const AIgnoreObjNotExists:Boolean=False): Integer; overload;
     // Informations
+    function Connection(const AConnectionName:String): IioSQLDestination;
     function SelfClass(const ASelfClassName:String): IioSQLDestination; overload;
     function SelfClass(const ASelfClassRef: TioClassRef): IioSQLDestination; overload;
     function QualifiedFieldName(const AQualifiedFieldName:Boolean=True): IioSQLDestination;
     // Getters
     function GetTranslatedSQL: String; overload;
+    function GetConnectionName: String;
     function GetIgnoreObjNotExists: Boolean;
   end;
 
@@ -310,10 +312,9 @@ type
     class procedure StartTransaction(const AConnectionName:String); virtual; abstract;
     class procedure CommitTransaction(const AConnectionName:String); virtual; abstract;
     class procedure RollbackTransaction(const AConnectionName:String); virtual; abstract;
-    class function InTransaction(const AConnectionName:String): boolean; virtual; abstract;
-    class procedure PersistObject(const AObj: TObject; const ARelationPropertyName:String; const ARelationOID:Integer; const ABlindInsert:Boolean); virtual; abstract;
-    class procedure PersistCollection(const ACollection:TObject; const ARelationPropertyName:String; const ARelationOID:Integer; const ABlindInsert:Boolean); virtual; abstract;
-    class procedure DeleteObject(const AObj: TObject); virtual; abstract;
+    class procedure PersistObject(const AObj: TObject; const ARelationPropertyName:String; const ARelationOID:Integer; const ABlindInsert:Boolean; const AConnectionName:String); virtual; abstract;
+    class procedure PersistCollection(const ACollection:TObject; const ARelationPropertyName:String; const ARelationOID:Integer; const ABlindInsert:Boolean; const AConnectionName:String); virtual; abstract;
+    class procedure DeleteObject(const AObj: TObject; const AConnectionName:String); virtual; abstract;
     class procedure Delete(const AWhere: IioWhere); virtual; abstract;
     class procedure LoadList(const AWhere: IioWhere; const AList:TObject); virtual; abstract;
     class function LoadObject(const AWhere: IioWhere; const AObj:TObject): TObject; virtual; abstract;

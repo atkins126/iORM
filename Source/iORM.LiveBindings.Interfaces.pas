@@ -56,7 +56,7 @@ type
   IioDetailBindSourceAdaptersContainer = interface;
 
   // Bind source adapters notification type
-  TioBSANotificationType = (ntAfterPost, ntAfterDelete, ntAfterRefresh);
+  TioBSANotificationType = (ntAfterPost, ntAfterDelete);
 
   // BindSource AutoRefresh type after notification
   TioAutoRefreshType = (arDisabled, arEnabledNoReload, arEnabledReload);
@@ -115,7 +115,7 @@ type
     procedure PersistCurrent;
     procedure PersistAll;
     procedure Notify(Sender:TObject; ANotification:IioBSANotification);
-    procedure Refresh(const AReloadData:Boolean; const ANotify:Boolean=True);
+    procedure Refresh(ReloadData:Boolean);
     procedure SetBindSource(ANotifiableBindSource:IioNotifiableBindSource);
     function GetBindSource: IioNotifiableBindSource;
     procedure Insert; overload;
@@ -222,6 +222,10 @@ type
     procedure SetActive(Value: Boolean);
     function GetActive: Boolean;
     property Active: Boolean read GetActive write SetActive;
+    // Connection name
+    procedure SetioConnectionName(const Value: String);
+    function GetioConnectionName : String;
+    property ioConnectionName : String read GetioConnectionName write SetioConnectionName;
   end;
 
   // Bind source adapter container
@@ -253,7 +257,7 @@ type
   IioNaturalBindSourceAdapterSource = interface
     ['{892D8DAE-96F3-48FC-925C-F3F5CD5C0F68}']
     procedure Notify(Sender:TObject; ANotification:IioBSANotification);
-    procedure Refresh(const AReloadData:Boolean; const ANotify:Boolean=True); overload;
+    procedure Refresh(ReloadData:Boolean); overload;
     function GetCurrent: TObject;
     function UseObjStatus: Boolean;
     function NewNaturalObjectBindSourceAdapter(const AOwner:TComponent): TBindSourceAdapter;

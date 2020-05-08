@@ -24,7 +24,8 @@ uses
 
 { TioSqlDataConverterMSSqlServer }
 
-class function TioSqlDataConverterMSSqlServer.FieldNameToSqlFieldName(const AFieldName: string): string;
+class function TioSqlDataConverterMSSqlServer.FieldNameToSqlFieldName(
+  const AFieldName: string): string;
 begin
   Result := '[' + AFieldName + ']';
 end;

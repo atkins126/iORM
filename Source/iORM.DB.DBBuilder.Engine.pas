@@ -61,16 +61,11 @@ type
   public
     constructor Create(ASourceTableName: string; ASourceFieldName: string; ADestinationTableName: string; ADestinationFieldName: string;
       ARelationType: TioRelationType);
-    property SourceTableName: string
-      read GetSourceTableName;
-    property SourceFieldName: string
-      read GetSourceFieldName;
-    property DestinationTableName: string
-      read GetDestinationTableName;
-    property DestinationFieldName: string
-      read GetDestinationFieldName;
-    property RelationType: TioRelationType
-      read GetRelationType;
+    property SourceTableName: string read GetSourceTableName;
+    property SourceFieldName: string read GetSourceFieldName;
+    property DestinationTableName: string read GetDestinationTableName;
+    property DestinationFieldName: string read GetDestinationFieldName;
+    property RelationType: TioRelationType read GetRelationType;
   end;
 
   TioDBBuilderField = class(TInterfacedObject, IioDBBuilderField)
@@ -101,26 +96,16 @@ type
     function GetDBFieldSameType: Boolean;
     // IsClassFromFIeld
     function GetIsClassFromField: Boolean;
-    property IsClassFromField: Boolean
-      read GetIsClassFromField;
+    property IsClassFromField: Boolean read GetIsClassFromField;
   public
     constructor Create(AFieldName: String; AIsKeyField: Boolean; AProperty: IioContextProperty; ASqlGenerator: IioDBBuilderSqlGenerator;
       AIsClassFromField: Boolean; AIsSqlField: Boolean);
-    property FieldName: String
-      read GetFieldName;
-    property FieldType: String
-      read GetFieldType;
-    property IsKeyField: Boolean
-      read GetIsKeyField;
-    property IsSqlField: Boolean
-      read GetIsSqlField
-      write SetIsSqlField;
-    property DBFieldExist: Boolean
-      read GetDBFieldExist
-      write SetDBFieldExist;
-    property DBFieldSameType: Boolean
-      read GetDBFieldSameType
-      write SetDBFieldSameType;
+    property FieldName: String read GetFieldName;
+    property FieldType: String read GetFieldType;
+    property IsKeyField: Boolean read GetIsKeyField;
+    property IsSqlField: Boolean read GetIsSqlField write SetIsSqlField;
+    property DBFieldExist: Boolean read GetDBFieldExist write SetDBFieldExist;
+    property DBFieldSameType: Boolean read GetDBFieldSameType write SetDBFieldSameType;
     // Rtti property reference
     function GetProperty: IioContextProperty;
   end;
@@ -149,22 +134,15 @@ type
     // FK List
     function GetForeignKeyList: TioDBBuilderFKList;
   public
-    constructor Create(const ATableName: String; const AIsClassFromField: Boolean; const ASqlGenerator: IioDBBuilderSqlGenerator;
-      const AMap: IioMap);
+    constructor Create(const ATableName: String; const AIsClassFromField: Boolean; const ASqlGenerator: IioDBBuilderSqlGenerator; const AMap: IioMap);
     destructor Destroy; override;
     function FieldExists(AFieldName: String): Boolean;
     function IDField: IioDBBuilderField;
     function GetMap: IioMap;
-    function IsForThisConnection(const AConnectionDefNameToCheck: String): Boolean;
-    property TableName: String
-      read GetTableName
-      write SetTableName;
-    property Fields: TioDBBuilderFieldList
-      read GetFields;
-    property IndexList: TioIndexList
-      read GetIndexList;
-    property ForeignKeyList: TioDBBuilderFKList
-      read GetForeignKeyList;
+    property TableName: String read GetTableName write SetTableName;
+    property Fields: TioDBBuilderFieldList read GetFields;
+    property IndexList: TioIndexList read GetIndexList;
+    property ForeignKeyList: TioDBBuilderFKList read GetForeignKeyList;
   end;
 
   TioDBBuilder = class(TInterfacedObject, IioDBBuilder)
@@ -179,8 +157,8 @@ type
     function RemoveLastComma(const AValue: string): string;
     function GetField(AFieldName: String; AIsKeyField: Boolean; AProperty: IioContextProperty; ASqlGenerator: IioDBBuilderSqlGenerator;
       AIsClassFromField: Boolean; AIsSqlField: Boolean): IioDBBuilderField;
-    function GetTable(const ATableName: String; const AIsClassFromField: Boolean; const ASqlGenerator: IioDBBuilderSqlGenerator;
-      const AMap: IioMap): IioDBBuilderTable;
+    function GetTable(const ATableName: String; const AIsClassFromField: Boolean; const ASqlGenerator: IioDBBuilderSqlGenerator; const AMap: IioMap)
+      : IioDBBuilderTable;
     function FindOrCreateTable(const ATableName: String; const AIsClassFromField: Boolean; const AMap: IioMap): IioDBBuilderTable;
     procedure LoadTableStructure(AMap: IioMap);
     procedure LoadDBStructure;
@@ -191,14 +169,13 @@ type
     function GetCreateIndexes: Boolean;
     function GetCreateReferentialIntegrityConstraints: Boolean;
     function GetCreateScriptOnly: Boolean;
-    function InternalGenerateDB(out OOutputScript: String; out OErrorMessage: String): Boolean;
   public
-    constructor Create(const AConnectionDefName: string; const ACreateIndexes, ACreateReferentialIntegrityConstraints,
-      AScriptOnly: Boolean);
+    constructor Create(AConnectionDefName: string);
     destructor Destroy; override;
     function GenerateDB(out OOutputScript: String; out OErrorMessage: String): Boolean;
     property CreateScriptOnly: Boolean read GetCreateScriptOnly write SetCreateScriptOnly;
-    property CreateReferentialIntegrityConstraints: Boolean read GetCreateReferentialIntegrityConstraints write SetCreateReferentialIntegrityConstraints;
+    property CreateReferentialIntegrityConstraints: Boolean read GetCreateReferentialIntegrityConstraints
+      write SetCreateReferentialIntegrityConstraints;
     property CreateIndexes: Boolean read GetCreateIndexes write SetCreateIndexes;
   end;
 
@@ -218,14 +195,13 @@ uses
 
 { TioDBBuilder }
 
-constructor TioDBBuilder.Create(const AConnectionDefName: string; const ACreateIndexes, ACreateReferentialIntegrityConstraints,
-  AScriptOnly: Boolean);
+constructor TioDBBuilder.Create(AConnectionDefName: string);
 begin
-  FConnectionDefName := AConnectionDefName;
-  FCreateIndexes := ACreateIndexes;
-  FCreateReferentialIntegrityConstraints := ACreateReferentialIntegrityConstraints;
-  FCreateScriptOnly := AScriptOnly;
   FTables := TioDBBuilderTableList.Create;
+  FCreateScriptOnly := False;
+  FCreateIndexes := True;
+  FCreateReferentialIntegrityConstraints := True;
+  FConnectionDefName := AConnectionDefName;
 end;
 
 destructor TioDBBuilder.Destroy;
@@ -234,8 +210,7 @@ begin
   inherited;
 end;
 
-function TioDBBuilder.FindOrCreateTable(const ATableName: String; const AIsClassFromField: Boolean; const AMap: IioMap)
-  : IioDBBuilderTable;
+function TioDBBuilder.FindOrCreateTable(const ATableName: String; const AIsClassFromField: Boolean; const AMap: IioMap): IioDBBuilderTable;
 begin
   // If table is already present return it
   if FTables.ContainsKey(ATableName) then
@@ -249,7 +224,7 @@ begin
   Self.FTables.Add(ATableName, Result);
 end;
 
-function TioDBBuilder.InternalGenerateDB(out OOutputScript: String; out OErrorMessage: String): Boolean;
+function TioDBBuilder.GenerateDB(out OOutputScript: String; out OErrorMessage: String): Boolean;
 var
   LSb: TStringBuilder;
   LSqlGenerator: IioDBBuilderSqlGenerator;
@@ -315,14 +290,16 @@ begin
     LSb := TStringBuilder.Create;
 
     try
-      LSqlGenerator := TioDBBuilderFactory.NewSqlGenerator(FConnectionDefName);
-      LDatabaseName := TioDBFactory.ConnectionManager.GetConnectionDefByName(FConnectionDefName).Params.Database;
+      LSqlGenerator := TioDBBuilderFactory.NewSqlGenerator;
+      LDatabaseName := TioDBFactory.ConnectionManager.GetConnectionDefByName(TioDBFactory.ConnectionManager.GetDefaultConnectionName).Params.Database;
 
       // Verification of Database Existence
       LDbExists := LSqlGenerator.DatabaseExists(LDatabaseName);
 
       if not LDbExists then
+      begin
         LSqlGenerator.CreateDatabase(LDatabaseName);
+      end;
 
       // Move into Current Database
       if FCreateScriptOnly then
@@ -379,10 +356,6 @@ begin
       for LPairTable in FTables do
       begin
         LTableName := LPairTable.Value.TableName;
-
-        // If current table is specific for another database (not the current one) then skip it
-        if not LPairTable.Value.IsForThisConnection(FConnectionDefName) then
-          Continue;
 
         // Check Table Existence
         if (not LDbExists) or (not LSqlGenerator.TableExists(LDatabaseName, LTableName)) then
@@ -465,7 +438,7 @@ begin
               begin
                 // Skip Key Field
                 if (not LPairField.Value.IsKeyField) then
-                  AlterTable(False);
+                  AlterTable(false);
               end
               else
               begin
@@ -486,11 +459,6 @@ begin
         // Add Indexes After Generated All Tables
         for LPairTable in FTables do
         begin
-
-          // If current table is specific for another database (not the current one) then skip it
-          if not LPairTable.Value.IsForThisConnection(FConnectionDefName) then
-            Continue;
-
           for LIndex in LPairTable.Value.IndexList do
           begin
             LContext := TioContextFactory.Context(LPairTable.Value.GetMap.GetClassName);
@@ -498,8 +466,7 @@ begin
             LSb.AppendLine();
 
             // Generate Sql x Index
-            LAddIndexSql := LSqlGenerator.AddIndex(LContext, LIndex.IndexName, LIndex.CommaSepFieldList, LIndex.IndexOrientation,
-              LIndex.Unique);
+            LAddIndexSql := LSqlGenerator.AddIndex(LContext, LIndex.IndexName, LIndex.CommaSepFieldList, LIndex.IndexOrientation, LIndex.Unique);
 
             if not LAddIndexSql.Trim.IsEmpty then
               LSb.AppendLine(LAddIndexSql);
@@ -517,11 +484,6 @@ begin
         // Add Foreign Key After Generated All Tables
         for LPairTable in FTables do
         begin
-
-          // If current table is specific for another database (not the current one) then skip it
-          if not LPairTable.Value.IsForThisConnection(FConnectionDefName) then
-            Continue;
-
           for LPairField in LPairTable.Value.Fields do
           begin
             LRel := LPairField.Value.GetProperty.GetRelationType;
@@ -538,8 +500,7 @@ begin
               LChildTypeAlias := LPairField.Value.GetProperty.GetRelationChildTypeAlias;
               LChildPropertyName := LPairField.Value.GetProperty.GetRelationChildPropertyName;
               // Resolve the type and alias
-              LResolvedTypeList := TioResolverFactory.GetResolver(rsByDependencyInjection)
-                .Resolve(LChildTypeName, LChildTypeAlias, rmAll);
+              LResolvedTypeList := TioResolverFactory.GetResolver(rsByDependencyInjection).Resolve(LChildTypeName, LChildTypeAlias, rmAll);
               // Loop for all classes in the sesolved type list
               for LResolvedTypeName in LResolvedTypeList do
               begin
@@ -562,12 +523,15 @@ begin
                   LDestinationFieldName := LChildContext.GetProperties.GetIDProperty.GetName;
                 end;
 
+
+
+
+
                 LSb.AppendLine();
 
                 // Create Sql x FK
-                LAddFKSql := LSqlGenerator.AddForeignKey(LSourceTableName, LSourceFieldName, LDestinationTableName,
-                  LDestinationFieldName, LPairField.Value.GetProperty.GetMetadata_FKCascadeDelete,
-                  LPairField.Value.GetProperty.GetMetadata_FKCascadeUpdate);
+                LAddFKSql := LSqlGenerator.AddForeignKey(LSourceTableName, LSourceFieldName, LDestinationTableName, LDestinationFieldName,
+                     LPairField.Value.GetProperty.GetMetadata_FKCascadeDelete, LPairField.Value.GetProperty.GetMetadata_FKCascadeUpdate);
 
                 if not LAddFKSql.Trim.IsEmpty then
                   LSb.AppendLine(LAddFKSql);
@@ -600,19 +564,6 @@ begin
   end;
 end;
 
-function TioDBBuilder.GenerateDB(out OOutputScript, OErrorMessage: String): Boolean;
-var
-  LPreviousDefaultConnectionDefName: String;
-begin
-  LPreviousDefaultConnectionDefName := TioConnectionManager.GetDefaultConnectionName;
-  try
-    TioConnectionManager.SetDefaultConnectionName(FConnectionDefName);
-    Result := InternalGenerateDB(OOutputScript, OErrorMessage);
-  finally
-    TioConnectionManager.SetDefaultConnectionName(LPreviousDefaultConnectionDefName);
-  end;
-end;
-
 function TioDBBuilder.GetCreateIndexes: Boolean;
 begin
   Result := FCreateIndexes;
@@ -628,8 +579,8 @@ begin
   Result := FCreateScriptOnly;
 end;
 
-function TioDBBuilder.GetField(AFieldName: String; AIsKeyField: Boolean; AProperty: IioContextProperty;
-  ASqlGenerator: IioDBBuilderSqlGenerator; AIsClassFromField: Boolean; AIsSqlField: Boolean): IioDBBuilderField;
+function TioDBBuilder.GetField(AFieldName: String; AIsKeyField: Boolean; AProperty: IioContextProperty; ASqlGenerator: IioDBBuilderSqlGenerator;
+  AIsClassFromField: Boolean; AIsSqlField: Boolean): IioDBBuilderField;
 begin
   Result := TioDBBuilderField.Create(AFieldName, AIsKeyField, AProperty, ASqlGenerator, AIsClassFromField, AIsSqlField);
 end;
@@ -644,8 +595,8 @@ begin
   end;
 end;
 
-function TioDBBuilder.GetTable(const ATableName: String; const AIsClassFromField: Boolean;
-  const ASqlGenerator: IioDBBuilderSqlGenerator; const AMap: IioMap): IioDBBuilderTable;
+function TioDBBuilder.GetTable(const ATableName: String; const AIsClassFromField: Boolean; const ASqlGenerator: IioDBBuilderSqlGenerator;
+  const AMap: IioMap): IioDBBuilderTable;
 begin
   Result := TioDBBuilderTable.Create(ATableName, AIsClassFromField, ASqlGenerator, AMap);
 end;
@@ -719,11 +670,6 @@ begin
           LDestinationFieldName := LChildContext.GetProperties.GetIDProperty.GetName;
         end;
 
-        // If current foreign is between two classes mapped to two different ConnectionDefNames
-        //  then skip it
-        if LPairTable.Value.GetMap.GetTable.GetConnectionDefName <> LChildContext.GetTable.GetConnectionDefName then
-          Continue;
-
         // Create FK and add it to foreign key dictionary
         LFkName := LSourceFieldName + '_' + LDestinationTableName;
 
@@ -734,15 +680,15 @@ begin
           if Assigned(LSourceTable) then
           begin
             if not LSourceTable.ForeignKeyList.ContainsKey(LFkName) then
-              LSourceTable.ForeignKeyList.Add(LFkName, TioDBBuilderFKDefinition.Create(LSourceTableName, LSourceFieldName,
-                LDestinationTableName, LDestinationFieldName, LRel));
+              LSourceTable.ForeignKeyList.Add(LFkName, TioDBBuilderFKDefinition.Create(LSourceTableName, LSourceFieldName, LDestinationTableName,
+                LDestinationFieldName, LRel));
           end;
         end
         else
         begin
           if not LPairTable.Value.ForeignKeyList.ContainsKey(LFkName) then
-            LPairTable.Value.ForeignKeyList.Add(LFkName, TioDBBuilderFKDefinition.Create(LSourceTableName, LSourceFieldName,
-              LDestinationTableName, LDestinationFieldName, LRel));
+            LPairTable.Value.ForeignKeyList.Add(LFkName, TioDBBuilderFKDefinition.Create(LSourceTableName, LSourceFieldName, LDestinationTableName,
+              LDestinationFieldName, LRel));
         end;
 
       end;
@@ -753,8 +699,8 @@ end;
 procedure TioDBBuilder.LoadTableStructure(AMap: IioMap);
 var
   AProperty: IioContextProperty;
-  ABuilderTable: IioDBBuilderTable;
-  ABuilderField: IioDBBuilderField;
+  ATable: IioDBBuilderTable;
+  AField: IioDBBuilderField;
   LIndex: ioIndex;
   ATableName: String;
   LIsSqlField: Boolean;
@@ -766,10 +712,7 @@ begin
   // get the table name
   ATableName := AMap.GetTable.TableName;
   // Find or Create Table
-  ABuilderTable := Self.FindOrCreateTable(AMap.GetTable.TableName, AMap.GetTable.IsClassFromField, AMap);
-  // If current table is specific for another database (not the current one) then skip it
-  if not ABuilderTable.IsForThisConnection(FConnectionDefName) then
-    Exit;
+  ATable := Self.FindOrCreateTable(AMap.GetTable.TableName, AMap.GetTable.IsClassFromField, AMap);
   // Loop for properties
   for AProperty in AMap.GetProperties do
   begin
@@ -785,7 +728,7 @@ begin
     // fosse già stato inserito come skipped e la proprietà che stiamo
     // trattando è presente più volte nel modello andiamo a modificare
     // il flag IsSqlField per consentire la creazione del campo nel DB.AProperty.GetSqlFieldName
-    if ABuilderTable.Fields.TryGetValue(AProperty.GetSqlFieldName, lField) then
+    if ATable.Fields.TryGetValue(AProperty.GetSqlFieldName, lField) then
     begin
       if (AProperty.GetRelationType = ioRTHasMany) or (AProperty.GetRelationType = ioRTHasOne) then
         lField.IsSqlField := False
@@ -797,19 +740,18 @@ begin
     end;
 
     // If not already exixts create and add it to the list
-    if ABuilderTable.FieldExists(AProperty.GetSqlFieldName) then
+    if ATable.FieldExists(AProperty.GetSqlFieldName) then
       Continue;
 
-    ABuilderField := Self.GetField(AProperty.GetSqlFieldName, (AProperty = AMap.GetProperties.GetIDProperty), AProperty,
-      FSqlGenerator, False, LIsSqlField);
-    ABuilderTable.Fields.Add(ABuilderField.FieldName, ABuilderField);
+    AField := Self.GetField(AProperty.GetSqlFieldName, (AProperty = AMap.GetProperties.GetIDProperty), AProperty, FSqlGenerator, False, LIsSqlField);
+    ATable.Fields.Add(AField.FieldName, AField);
   end;
   // If some explicit index is present then add it to the list
   if AMap.GetTable.IndexListExists then
     for LIndex in AMap.GetTable.GetIndexList(False) do
     begin
-      if ABuilderTable.IndexList.IndexOf(LIndex) = -1 then
-        ABuilderTable.IndexList.Add(LIndex);
+      if ATable.IndexList.IndexOf(LIndex) = -1 then
+        ATable.IndexList.Add(LIndex);
     end;
 end;
 
@@ -838,8 +780,8 @@ end;
 
 { TioDBBuilderField }
 
-constructor TioDBBuilderField.Create(AFieldName: String; AIsKeyField: Boolean; AProperty: IioContextProperty;
-  ASqlGenerator: IioDBBuilderSqlGenerator; AIsClassFromField: Boolean; AIsSqlField: Boolean);
+constructor TioDBBuilderField.Create(AFieldName: String; AIsKeyField: Boolean; AProperty: IioContextProperty; ASqlGenerator: IioDBBuilderSqlGenerator;
+  AIsClassFromField: Boolean; AIsSqlField: Boolean);
 begin
   FSqlGenerator := ASqlGenerator;
   FFieldName := AFieldName;
@@ -907,8 +849,8 @@ end;
 
 { TioDBBuilderTable }
 
-constructor TioDBBuilderTable.Create(const ATableName: String; const AIsClassFromField: Boolean;
-  const ASqlGenerator: IioDBBuilderSqlGenerator; const AMap: IioMap);
+constructor TioDBBuilderTable.Create(const ATableName: String; const AIsClassFromField: Boolean; const ASqlGenerator: IioDBBuilderSqlGenerator;
+  const AMap: IioMap);
 begin
   FSqlGenerator := ASqlGenerator;
   FTableName := ATableName;
@@ -973,16 +915,6 @@ end;
 function TioDBBuilderTable.IsClassFromField: Boolean;
 begin
   Result := FIsClassFromField;
-end;
-
-function TioDBBuilderTable.IsForThisConnection(const AConnectionDefNameToCheck: String): Boolean;
-var
-  LCurrentConnectionDefName: String;
-begin
-  LCurrentConnectionDefName := GetMap.GetTable.GetConnectionDefName;
-  Result := LCurrentConnectionDefName.IsEmpty
-    or (LCurrentConnectionDefName = IO_CONNECTIONDEF_DEFAULTNAME)
-    or (GetMap.GetTable.GetConnectionDefName = AConnectionDefNameToCheck);
 end;
 
 procedure TioDBBuilderTable.SetTableName(AValue: String);
@@ -1057,3 +989,4 @@ begin
 end;
 
 end.
+

@@ -61,7 +61,7 @@ implementation
 
 uses
   iORM, System.JSON, FMX.Forms,
-  System.UITypes, iORM.MVVM.Interfaces, VM.Person, V.Person,
+  System.UITypes, iORM.MVVM.Interfaces, VM.Person,
   iORM.Containers.Interfaces, iORM.Containers.List;
 
 {$R *.dfm}

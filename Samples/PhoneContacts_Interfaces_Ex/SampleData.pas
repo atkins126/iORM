@@ -6,7 +6,7 @@ type
 
   TSampleData = class
   public
-    class procedure CheckForSampleDataCreation(const AConnectionDefName: String);
+    class procedure CheckForSampleDataCreation;
     class procedure CreateSampleData;
   end;
 
@@ -18,19 +18,15 @@ uses
 
 { TSampleData }
 
-class procedure TSampleData.CheckForSampleDataCreation(const AConnectionDefName: String);
+class procedure TSampleData.CheckForSampleDataCreation;
 var
-  LPreviousDefaultConnectionDefName: String;
   LMemTable: TFDMemTable;
 begin
-  LPreviousDefaultConnectionDefName := io.Connections.GetDefaultConnectionName;
+  LMemTable := io.SQL('select count(*) from [TPerson] union all select count(*) from [TAnotherPerson]').ToMemTable;
   try
-    io.Connections.SetDefaultConnectionName(AConnectionDefName);
-    LMemTable := io.SQL('select count(*) from [TPerson] union all select count(*) from [TAnotherPerson]').ToMemTable;
     if LMemTable.Fields[0].AsInteger = 0 then
       Self.CreateSampleData;
   finally
-    io.Connections.SetDefaultConnectionName(LPreviousDefaultConnectionDefName);
     LMemTable.Free;
   end;
 end;

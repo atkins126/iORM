@@ -61,6 +61,7 @@ type
     FDisableClassFromField: Boolean;
     FLazyLoad: Boolean;
     FOrderBy: IioSqlItemWhere;
+    FConnectionName: String;
     // Contiene le clausole where specificate fino ad ora
     FWhereItems: IWhereItems;
     // Contiene le eventuali clausole where di eventuali dettagli, la chiave è una stringa
@@ -100,8 +101,7 @@ type
     procedure ToMemTable(const AMemTable:TFDMemTable); overload;
 
     function _ToObjectInternalByClassOnly(const AObj:TObject=nil): TObject;
-    function ToObject(const AObj:TObject=nil): TObject; overload;
-    function ToObject(const AIntf:IInterface): TObject; overload;
+    function ToObject(const AObj:TObject=nil): TObject; virtual;
 
     procedure ToList(const AList:TObject); overload;
     function ToList(const AListRttiType:TRttiType; const AOwnsObjects:Boolean=True): TObject; overload;
@@ -129,6 +129,8 @@ type
     function SetDetailsContainer(ADetailsContainer: IioWhereDetailsContainer): IioWhere;
     function Lazy(const ALazyEnabled:Boolean=True): IioWhere;
     function IsLazy: Boolean;
+    function ConnectionName(const AConnectionName:String): IioWhere;
+    function GetConnectionName: String;
     // --------------------------------------------------------------
     // ------ Logic relations
     function _And: IioWhere; overload;
@@ -239,6 +241,7 @@ type
     function DisableClassFromField: IioWhere<T>;
     function SetDetailsContainer(ADetailsContainer: IioWhereDetailsContainer): IioWhere<T>;
     function Lazy(const ALazyEnabled:Boolean=True): IioWhere<T>;
+    function ConnectionName(const AConnectionName:String): IioWhere<T>;
     // ------ Logic relations
     function _And: IioWhere<T>; overload;
     function _Or: IioWhere<T>; overload;
@@ -336,7 +339,7 @@ uses
   iORM.LiveBindings.ActiveObjectBindSourceAdapter, iORM.Where.Factory,
   iORM.Exceptions, FireDAC.Comp.DataSet, iORM.LazyLoad.Factory,
   iORM.Strategy.Factory, iORM.LazyLoad.Generics.List, iORM.Containers.List,
-  iORM.MVVM.Interfaces, iORM.AbstractionLayer.Framework, iORM.Context.Container;
+  iORM.MVVM.Interfaces, iORM.AbstractionLayer.Framework;
 
 { TioWhere }
 
@@ -553,6 +556,14 @@ begin
   Self._PropertyOIDEqualsTo(AOID);
 end;
 
+function TioWhere.ConnectionName(const AConnectionName: String): IioWhere;
+begin
+  Result := Self;
+  Self.FConnectionName := AConnectionName;
+  // Set the connection name in the deails where container even (for details propagation)
+  Self.Details.SetConnectionName(AConnectionName);
+end;
+
 constructor TioWhere.Create;
 begin
   TioApplication.CheckIfAbstractionLayerComponentExists;
@@ -562,6 +573,7 @@ begin
   FWhereItems := TioWhereFactory.NewWhereItems;
   FDetailsContainer := TioWhereFactory.NewDetailsContainer;
   FOrderBy := nil;
+  FConnectionName := '';
 end;
 
 procedure TioWhere.CreateIndex(ACommaSepFieldList: String;
@@ -599,7 +611,7 @@ begin
       // Get the Context for the current ResolverTypeName
       AContext := TioContextFactory.Context(AResolvedTypeName, Self);
       // Start transaction
-      ATransactionCollection.StartTransaction(AContext.GetTable.GetConnectionDefName);
+      ATransactionCollection.StartTransaction(AContext.GetConnectionDefName);
       // Load the current class data into the list
       NestedCreateIndex;
     end;
@@ -614,7 +626,7 @@ end;
 
 procedure TioWhere.Delete;
 begin
-  TioStrategyFactory.GetStrategy('').Delete(Self);
+  TioStrategyFactory.GetStrategy(FConnectionName).Delete(Self);
 end;
 
 function TioWhere.DisableClassFromField: IioWhere;
@@ -650,7 +662,7 @@ begin
       // Get the Context for the current ResolverTypeName
       AContext := TioContextFactory.Context(AResolvedTypeName, Self);
       // Start transaction
-      ATransactionCollection.StartTransaction(AContext.GetTable.GetConnectionDefName);
+      ATransactionCollection.StartTransaction(AContext.GetConnectionDefName);
       // Load the current class data into the list
       NestedDropIndex;
     end;
@@ -661,6 +673,11 @@ begin
     ATransactionCollection.RollbackAll;
     raise;
   end;
+end;
+
+function TioWhere.GetConnectionName: String;
+begin
+  Result := FConnectionName;
 end;
 
 function TioWhere.GetDetails: IioWhereDetailsContainer;
@@ -916,7 +933,7 @@ end;
 
 procedure TioWhere.ToList(const AList: TObject);
 begin
-  TioStrategyFactory.GetStrategy('').LoadList(Self, AList);
+  TioStrategyFactory.GetStrategy(FConnectionName).LoadList(Self, AList);
 end;
 
 
@@ -979,7 +996,7 @@ end;
 
 procedure TioWhere.ToMemTable(const AMemTable: TFDMemTable);
 begin
-  TioStrategyFactory.GetStrategy('').LoadDataSet(Self, AMemTable);
+  TioStrategyFactory.GetStrategy(FConnectionName).LoadDataSet(Self, AMemTable);
 end;
 
 function TioWhere.ToObject(const AObj:TObject): TObject;
@@ -989,12 +1006,7 @@ begin
     Result := TioLazyLoadFactory.LazyLoadObject(Self.TypeInfo, Self.TypeName, Self.TypeAlias, '', 0, Self) as TObject
   // else...
   else
-    Result := TioStrategyFactory.GetStrategy('').LoadObject(Self, AObj);
-end;
-
-function TioWhere.ToObject(const AIntf: IInterface): TObject;
-begin
-  ToObject(AIntf as TObject);
+    Result := TioStrategyFactory.GetStrategy(FConnectionName).LoadObject(Self, AObj);
 end;
 
 function TioWhere.ToObjectBindSourceAdapter(AOwner: TComponent; AOwnsObject: Boolean): TBindSourceAdapter;
@@ -1195,7 +1207,7 @@ end;
 
 function TioWhere._ToObjectInternalByClassOnly(const AObj:TObject=nil): TObject;
 begin
-  Result := TioStrategyFactory.GetStrategy('').LoadObjectByClassOnly(Self, AObj);
+  Result := TioStrategyFactory.GetStrategy(FConnectionName).LoadObjectByClassOnly(Self, AObj);
 end;
 
 function TioWhere._Value(AValue: Integer): IioWhere;
@@ -1234,6 +1246,7 @@ begin
   Self.Add(AWhere);
   Self.FDetailsContainer := AWhere.Details;
   Self.FOrderBy := AWhere.GetOrderByInstance;
+  Self.FConnectionName := AWhere.GetConnectionName;
 end;
 
 function TioWhere._Where(ATextCondition: String): IioWhere;
@@ -1314,6 +1327,12 @@ function TioWhere<T>.ByOID(const AOID: Integer): IioWhere<T>;
 begin
   Result := Self;
   TioWhere(Self).ByOID(AOID);
+end;
+
+function TioWhere<T>.ConnectionName(const AConnectionName: String): IioWhere<T>;
+begin
+  Result := Self;
+  TioWhere(Self).ConnectionName(AConnectionName);
 end;
 
 function TioWhere<T>.DisableClassFromField: IioWhere<T>;

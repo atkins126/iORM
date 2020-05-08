@@ -51,6 +51,7 @@ type
     FMap: IioMap;
     FDataObject: TObject;
     FWhere: IioWhere;
+    FConnectionName: String;
   strict protected
     // DataObject
     function GetDataObject: TObject;
@@ -62,7 +63,7 @@ type
     function GetWhere: IioWhere;
     procedure SetWhere(const AWhere: IioWhere);
   public
-    constructor Create(const AClassName:String; const AMap:IioMap; const AWhere:IioWhere=nil; const ADataObject:TObject=nil); overload;
+    constructor Create(const AClassName:String; const AMap:IioMap; const AWhere:IioWhere=nil; const ADataObject:TObject=nil; const AConnectionName:String=''); overload;
     function GetClassRef: TioClassRef;
     function GetTable: IioContextTable;
     function GetProperties: IioContextProperties;
@@ -84,6 +85,9 @@ type
     function GetOrderBySql: String;
     // Join
     function GetJoin: IioJoins;
+    // ConnectionDefName
+    procedure SetConnectionDefName(const AConnectionName:String);
+    function GetConnectionDefName: String;
     // DataObject
     property DataObject:TObject read GetDataObject write SetDataObject;
     // ObjectStatus
@@ -110,17 +114,31 @@ begin
   Result := Self.Map.GetTable.GetClassFromField;
 end;
 
-constructor TioContext.Create(const AClassName:String; const AMap:IioMap; const AWhere:IioWhere=nil; const ADataObject:TObject=nil);
+constructor TioContext.Create(const AClassName:String; const AMap:IioMap; const AWhere:IioWhere=nil; const ADataObject:TObject=nil; const AConnectionName:String='');
 begin
   inherited Create;
   FMap := AMap;
   FDataObject := ADataObject;
   FWhere := AWhere;
+  FConnectionName := AConnectionName;
 end;
 
 function TioContext.GetClassRef: TioClassRef;
 begin
   Result := Self.Map.GetClassRef;
+end;
+
+function TioContext.GetConnectionDefName: String;
+begin
+  // Any connection name specified in the class/ioTable has precedence
+  //  if empty then take the name from ioWhere, else return empty.
+  //  L'ordine di precedenza è il seguente: ioTable, ioWhere, FConnectionName.
+  if not GetTable.GetConnectionDefName.isEmpty then
+    Result := GetTable.GetConnectionDefName
+  else if Assigned(FWhere) and not FWhere.GetConnectionName.IsEmpty then
+    Result := FWhere.GetConnectionName
+  else
+    Result := FConnectionName;
 end;
 
 function TioContext.GetDataObject: TObject;
@@ -133,7 +151,7 @@ begin
   Result := '';
   // Ritorna il GroupBy fisso (attribute nella dichiarazione della classe)
   if Assigned(Self.GetTable.GetGroupBy)
-    then Result := Self.GetTable.GetGroupBy.GetSql;
+    then Result := Self.GetTable.GetGroupBy.GetSql(FMap.GetClassName);
   // Aggiungere qui l'eventuale futuro codice per aggiungere/sostituire
   //  l'eventuale GroupBy specificato nel ioWhere e che quindi è nel
   //  context e che sostituisce il GroupBy fisso
@@ -169,6 +187,11 @@ end;
 function TioContext.RttiType: TRttiInstanceType;
 begin
   Result := Self.Map.RttiType;
+end;
+
+procedure TioContext.SetConnectionDefName(const AConnectionName: String);
+begin
+  FConnectionName := AConnectionName;
 end;
 
 procedure TioContext.SetDataObject(const AValue: TObject);

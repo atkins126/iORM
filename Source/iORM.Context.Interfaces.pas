@@ -80,6 +80,9 @@ type
     function GetOrderBySql: String;
     // Join
     function GetJoin: IioJoins;
+    // ConnectionDefName
+    procedure SetConnectionDefName(const AConnectionName:String);
+    function GetConnectionDefName: String;
   end;
 
 implementation

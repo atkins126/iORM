@@ -119,6 +119,7 @@ object MainForm: TMainForm
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
               StyleLookup = 'addtoolbutton'
+              Visible = True
             end
           end
         end
@@ -149,6 +150,7 @@ object MainForm: TMainForm
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
               StyleLookup = 'priortoolbutton'
+              Visible = True
             end
             object SpeedButton7: TSpeedButton
               Action = acTravelEdit
@@ -160,6 +162,7 @@ object MainForm: TMainForm
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
               StyleLookup = 'composetoolbutton'
+              Visible = True
             end
             object Layout1: TLayout
               Align = Client
@@ -241,6 +244,7 @@ object MainForm: TMainForm
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
               StyleLookup = 'addtoolbutton'
+              Visible = True
             end
           end
           object ListViewCostTypes: TListView
@@ -306,6 +310,7 @@ object MainForm: TMainForm
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
               StyleLookup = 'priortoolbutton'
+              Visible = True
             end
             object SpeedButton5: TSpeedButton
               Action = acCostDelete
@@ -317,6 +322,7 @@ object MainForm: TMainForm
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
               StyleLookup = 'trashtoolbutton'
+              Visible = True
             end
           end
         end
@@ -357,6 +363,7 @@ object MainForm: TMainForm
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
               StyleLookup = 'priortoolbutton'
+              Visible = True
             end
             object SBTravelEdit: TSpeedButton
               Action = acTravelEdit
@@ -368,6 +375,7 @@ object MainForm: TMainForm
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
               StyleLookup = 'composetoolbutton'
+              Visible = True
             end
             object SBTravelPost: TSpeedButton
               Action = acTravelPost
@@ -470,7 +478,7 @@ object MainForm: TMainForm
                 Touch.InteractiveGestures = [LongTap, DoubleTap]
                 Align = Right
                 TabOrder = 0
-                Text = '31/10/2020 00:58:00'
+                Text = '01/11/2018 00:58:00'
                 Position.X = 91.000000000000000000
                 Margins.Right = 10.000000000000000000
                 Size.Width = 199.000000000000000000
@@ -490,7 +498,7 @@ object MainForm: TMainForm
                 Touch.InteractiveGestures = [LongTap, DoubleTap]
                 Align = Right
                 TabOrder = 0
-                Text = '31/10/2020 00:58:00'
+                Text = '01/11/2018 00:58:00'
                 Position.X = 91.000000000000000000
                 Margins.Right = 10.000000000000000000
                 Size.Width = 199.000000000000000000
@@ -580,6 +588,7 @@ object MainForm: TMainForm
               Size.Height = 44.000000000000000000
               Size.PlatformDefault = False
               StyleLookup = 'priortoolbutton'
+              Visible = True
             end
             object Layout2: TLayout
               Align = Client
@@ -958,12 +967,6 @@ object MainForm: TMainForm
     ioViewDataType = dtList
     ioWhereDetailsFromDetailAdapters = False
     ioAutoRefreshOnNotification = arEnabledNoReload
-    ioOnReceiveSelectionAutoEdit = False
-    ioOnReceiveSelectionAutoPost = False
-    ioOnReceiveSelectionAutoPersist = False
-    ioPropagateEdit = False
-    ioPropagatePost = False
-    ioPropagatePersist = False
     Left = 224
     Top = 64
   end
@@ -992,12 +995,6 @@ object MainForm: TMainForm
     ioMasterBindSource = BSTravels
     ioMasterPropertyName = 'CostTypeList'
     ioAutoRefreshOnNotification = arEnabledNoReload
-    ioOnReceiveSelectionAutoEdit = False
-    ioOnReceiveSelectionAutoPost = False
-    ioOnReceiveSelectionAutoPersist = False
-    ioPropagateEdit = False
-    ioPropagatePost = False
-    ioPropagatePersist = False
     Left = 224
     Top = 112
   end
@@ -1025,12 +1022,6 @@ object MainForm: TMainForm
     ioMasterBindSource = BSCostTypes
     ioMasterPropertyName = 'CostList'
     ioAutoRefreshOnNotification = arEnabledNoReload
-    ioOnReceiveSelectionAutoEdit = False
-    ioOnReceiveSelectionAutoPost = False
-    ioOnReceiveSelectionAutoPersist = False
-    ioPropagateEdit = False
-    ioPropagatePost = False
-    ioPropagatePersist = False
     Left = 224
     Top = 160
   end
@@ -1052,17 +1043,12 @@ object MainForm: TMainForm
     ioWhereDetailsFromDetailAdapters = False
     ioMasterBindSource = BSCosts
     ioAutoRefreshOnNotification = arEnabledNoReload
-    ioOnReceiveSelectionAutoEdit = False
-    ioOnReceiveSelectionAutoPost = False
-    ioOnReceiveSelectionAutoPersist = False
-    ioPropagateEdit = False
-    ioPropagatePost = False
-    ioPropagatePersist = False
     Left = 224
     Top = 300
   end
   object SQLiteConn: TioSQLiteConnectionDef
     OnAfterRegister = SQLiteConnAfterRegister
+    AutoCreateDatabase = True
     Database = '..\..\..\SamplesData\RVMan.db'
     DatabaseStdFolder = sfUndefined
     DefaultConnection = True

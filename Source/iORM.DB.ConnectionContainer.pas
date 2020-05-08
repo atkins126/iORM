@@ -102,9 +102,8 @@ type
     class function GetConnectionDefByName(AConnectionName:String=IO_CONNECTIONDEF_DEFAULTNAME): IIoConnectionDef;
     class function IsEmptyConnectionName(const AConnectionName:String): Boolean;
     class function GetDefaultConnectionName: String;
-    class function GetDefaultConnectionNameIfEmpty(const AConnectionDefName: String): String;
-    class function GetConnectionInfo(AConnectionName:String): TioConnectionInfo;
-    class procedure SetDefaultConnectionName(AConnectionName:String=IO_CONNECTIONDEF_DEFAULTNAME);
+    class function GetConnectionInfo(AConnectionName:String=IO_CONNECTIONDEF_DEFAULTNAME): TioConnectionInfo;
+    class procedure SetDefaultConnectionName(const AConnectionName:String=IO_CONNECTIONDEF_DEFAULTNAME);
     class procedure SetShowHideWaitProc(const AShowWaitProc:TProc; const AHideWaitProc:TProc);
     class procedure ShowWaitProc;
     class procedure HideWaitProc;
@@ -226,7 +225,7 @@ class function TioConnectionManager.GetConnectionDefByName(AConnectionName: Stri
 begin
   Result := nil;
   // If desired ConnectionName is empty then get then Default one.
-  AConnectionName := GetDefaultConnectionNameIfEmpty(AConnectionName);
+  if Self.IsEmptyConnectionName(AConnectionName) then Self.GetDefaultConnectionName;
   // Get the ConnectionDef info's
   Result := FDManager.ConnectionDefs.FindConnectionDef(AConnectionName);
   // Connection not found
@@ -238,7 +237,7 @@ class function TioConnectionManager.GetConnectionInfo(
   AConnectionName: String): TioConnectionInfo;
 begin
   // If desired ConnectionName is empty then get then Default one.
-  AConnectionName := GetDefaultConnectionNameIfEmpty(AConnectionName);
+  if Self.IsEmptyConnectionName(AConnectionName) then AConnectionName := Self.GetDefaultConnectionName;
   // Return the desired connection type
   Result := FConnectionManagerContainer.Items[AConnectionName];
 end;
@@ -246,16 +245,6 @@ end;
 class function TioConnectionManager.GetDefaultConnectionName: String;
 begin
   Result := Self.FDefaultConnectionName;
-end;
-
-class function TioConnectionManager.GetDefaultConnectionNameIfEmpty(const AConnectionDefName: String): String;
-begin
-  // If AConnectionName param is not specified (is empty) then
-  //  use the default connection def
-  if IsEmptyConnectionName(AConnectionDefName) then
-    Result := GetDefaultConnectionName
-  else
-    Result := AConnectionDefName;
 end;
 
 class procedure TioConnectionManager.HideWaitProc;
@@ -372,11 +361,8 @@ begin
   FConnectionManagerContainer.AddOrSetValue(AConnectionName, TioConnectionInfo.Create(AConnectionName, cdtSQLServer, APersistent));
 end;
 
-class procedure TioConnectionManager.SetDefaultConnectionName(AConnectionName: String);
+class procedure TioConnectionManager.SetDefaultConnectionName(const AConnectionName: String);
 begin
-  // NB: Lasciare anche se il parametro è già defoultizzato perchè in alcune circostanze serve
-  if IsEmptyConnectionName(AConnectionName) then
-    AConnectionName := IO_CONNECTIONDEF_DEFAULTNAME;
   // If a connectionDef with this name is not founded then raise an exception
   if not Assigned(FDManager.ConnectionDefs.FindConnectionDef(AConnectionName)) then
     raise EioException.Create(Self.ClassName + ': Connection params definition "' + AConnectionName + '" not found!');

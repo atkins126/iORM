@@ -169,8 +169,8 @@ begin
   AQuery.SQL.Add('(');
   AQuery.SQL.Add(AContext.GetProperties.GetSql(ioInsert));
   // Add the ClassFromField if enabled
-  if AContext.IsClassFromField then
-    AQuery.SQL.Add(',' + AContext.ClassFromField.GetSqlFieldName);
+  if AContext.IsClassFromField
+    then AQuery.SQL.Add(',' + AContext.ClassFromField.GetSqlFieldName);
   // -----------------------------------------------------------------
   AQuery.SQL.Add(') VALUES (');
   // -----------------------------------------------------------------
@@ -230,7 +230,7 @@ begin
   // From
   AQuery.SQL.Add('FROM ' + AContext.GetTable.GetSql);
   // Join
-  AQuery.SQL.Add(AContext.GetJoin.GetSql);
+  AQuery.SQL.Add(AContext.GetJoin.GetSql(AContext.Map.GetTable.TableName));
   // If a Where exist then the query is an external query else
   //  is an internal query.
   if AContext.WhereExist then

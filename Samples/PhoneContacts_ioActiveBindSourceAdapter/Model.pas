@@ -31,7 +31,6 @@ type
     function GetFullName: String;
     function GetClassNameProp: String;
   public
-    constructor Create; overload;
     constructor Create(NewFirstName, NewLastName: String; NewID: Integer = 0); overload;
     destructor Destroy; override;
     property ID:Integer read FID write FID;
@@ -82,14 +81,10 @@ uses
 constructor TPerson.Create(NewFirstName, NewLastName: String; NewID: Integer);
 begin
   inherited Create;
+  FPhones := TObjectList<TPhoneNumber>.Create(True);
   FID := NewID;
   FFirstName := NewFirstName;
   FLastName := NewLastName;
-end;
-
-constructor TPerson.Create;
-begin
-  FPhones := TObjectList<TPhoneNumber>.Create(True);
 end;
 
 destructor TPerson.Destroy;

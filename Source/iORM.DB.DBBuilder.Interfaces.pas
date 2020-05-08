@@ -104,7 +104,6 @@ type
     ['{B8CB16FA-96F5-4858-918B-610DADCE40A1}']
     function FieldExists(AFieldName:String): Boolean;
     function GetMap: IioMap;
-    function IsForThisConnection(const AConnectionDefNameToCheck: String): Boolean;
     // TableName
     function GetTableName: String;
     Procedure SetTableName(AValue:String);
@@ -180,9 +179,6 @@ implementation
 
 begin
 end.
-
-
-
 
 
 

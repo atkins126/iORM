@@ -55,8 +55,7 @@ type
     function TranslateInternal(const AValue:String): String;
   public
     constructor Create(const ASelfClassName: String; const AQualifiedFieldName: Boolean);
-    class function Translate(const AValue, ASelfClassName:String; const AQualifiedFieldName:Boolean=True): String;
-//    class function Translate(const AValue, ASelfClassName:String; const AQualifiedFieldName:Boolean=True): String; overload;
+    class function Translate(const AValue:String; const ASelfClassName:String; const AQualifiedFieldName:Boolean=True): String;
   end;
 
 implementation
@@ -113,24 +112,24 @@ end;
 
 function TioSqlTranslator.ReplaceEval(const Match: TMatch): string;
 var
-  LSqlTag, LClassName, LPropName: String;
-  LMap: IioMap;
+  ASqlTag, AClassName, APropName: String;
+  AMap: IioMap;
 begin
-  LSqlTag := Self.RemoveDelimiters(Match.Value);
-  LClassName := Self.GetClassName(LSqlTag);
-  LPropName := Self.GetPropertyName(LSqlTag);
-  LMap := TioMapContainer.GetMap(LClassName);
-  Result := LMap.GetTable.TableName;
-  if LPropName <> '' then
+  ASqlTag := Self.RemoveDelimiters(Match.Value);
+  AClassName := Self.GetClassName(ASqlTag);
+  APropName := Self.GetPropertyName(ASqlTag);
+  AMap := TioMapContainer.GetMap(AClassName);
+  Result := AMap.GetTable.TableName;
+  if APropName <> '' then
   begin
     if FQualifiedFieldName then
-      Result := Result + '.' + LMap.GetProperties.GetPropertyByName(LPropName).GetSqlFieldName(True)
+      Result := Result + '.' + AMap.GetProperties.GetPropertyByName(APropName).GetSqlFieldName(True)
     else
-      Result := LMap.GetProperties.GetPropertyByName(LPropName).GetSqlFieldName(True);
+      Result := AMap.GetProperties.GetPropertyByName(APropName).GetSqlFieldName(True);
   end;
 end;
 
-class function TioSqlTranslator.Translate(const AValue, ASelfClassName:String; const AQualifiedFieldName:Boolean): String;
+class function TioSqlTranslator.Translate(const AValue: String; const ASelfClassName:String; const AQualifiedFieldName:Boolean): String;
 var
   LSqlTranslator: TioSqlTranslator;
 begin

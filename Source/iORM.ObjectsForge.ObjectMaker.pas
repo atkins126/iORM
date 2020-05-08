@@ -64,6 +64,7 @@ var
   AObj: TObject;
 begin
   inherited;
+  AObj := nil;
   // DataObject creation if not already exists
   if not Assigned(AContext.DataObject) then
     AContext.DataObject := Self.CreateObjectByClassRef(AContext.GetClassRef);
@@ -73,7 +74,6 @@ begin
   // Load properties values
   for CurrProp in AContext.GetProperties do
   begin
-    AObj := nil;
     // If the property is not ReadEnabled then skip it
     if not CurrProp.IsDBReadEnabled then Continue;
     case CurrProp.GetRelationType of
@@ -82,7 +82,7 @@ begin
       ioRTNone: begin
         // If it isn't related to a blob field then load as normal value
         if not CurrProp.IsBlob then
-          CurrProp.SetValue(Result, AQuery.GetValue(CurrProp, AContext))
+          CurrProp.SetValue(Result, AQuery.GetValue(CurrProp))
         // If it's related to a blob field and it is of TStream or descendant the load as stream
         else if CurrProp.IsStream then
           LoadPropertyStream(AContext, AQuery, CurrProp)

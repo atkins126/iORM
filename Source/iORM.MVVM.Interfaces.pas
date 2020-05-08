@@ -172,9 +172,8 @@ type
     procedure Add(const AName:String; const ACommandItem:IioCommandsContainerItem);
     procedure AddOrUpdate(const AName:String; const ACommandItem:IioCommandsContainerItem);
     procedure LoadCommands(const AOwner:TComponent);
-    procedure CopyCommands(const ADestinationCommandsContainer: IioCommandsContainer; const AUpdateIfExists: Boolean = False);
-    procedure CopyCommand(const ACommandName:String; const ADestinationCommandsContainer: IioCommandsContainer; const AUpdateIfExists: Boolean = False);
-    procedure Delete(AName: String);
+    procedure CopyCommands(const ADestinationCommandsContainer: IioCommandsContainer);
+    procedure CopyCommand(const ACommandName:String; const ADestinationCommandsContainer: IioCommandsContainer);
 //    procedure RegisterAction(const AName:String; const AOwner:TComponent; const AAction:TAction; const AIsNotificationTarget:Boolean=False);
 //    procedure RegisterMethod(const AName:String; const AOwner:TComponent; const ARttiMethod:TRttiMethod; const AIsNotificationTarget:Boolean=False);
 //    procedure RegisterAnonimousMethod(const AName:String; const AOwner:TComponent; const AAnonimousMethod:TioCommandAnonimousMethod; const AIsNotificationTarget:Boolean=False);
@@ -184,7 +183,7 @@ type
     procedure BindView(const AView:TComponent);
     procedure BindViewControl(const AControl:TObject; const ACommandName:String);
     function Get(const AName:String; const ANoException:Boolean=False): IioCommandsContainerItem;
-    function Exists(const AName:String): Boolean;
+    function Exist(const AName:String): Boolean;
   end;
 
 implementation

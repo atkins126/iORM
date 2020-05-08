@@ -32,7 +32,6 @@ uses
 
 procedure TProductViewModel.acPopulateItemListExecute(Sender: TObject);
 begin
-  MPBOMItemList.CheckAdapter(True);
   MPBOMItemList.ShowEach('', 'BOMVCProvider');
 end;
 
