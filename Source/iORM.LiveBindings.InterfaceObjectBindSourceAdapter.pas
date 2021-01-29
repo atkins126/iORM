@@ -97,8 +97,8 @@ type
 implementation
 
 
-uses SysUtils, iORM.Rtti.Utilities, iORM, iORM.Exceptions,
-  iORM.Resolver.Factory, iORM.Resolver.Interfaces;
+uses SysUtils, iORM.Utilities, iORM, iORM.Exceptions,
+  iORM.Resolver.Factory, iORM.Resolver.Interfaces, iORM.LiveBindings.CommonBSABehavior;
 
 { TInterfaceObjectBindSourceAdapter<T> }
 
@@ -107,10 +107,12 @@ var
   LType: TRttiType;
   LIntf: IGetMemberObject;
 begin
+  // inherited; // NB: Don't inherit from ancestor
   LType := GetObjectType;
   LIntf := TBindSourceAdapterGetMemberObject.Create(Self);
-  AddFieldsToList(LType, Self, Self.Fields, LIntf);
-  AddPropertiesToList(LType, Self, Self.Fields, LIntf);
+//  AddFieldsToList(LType, Self, Self.Fields, LIntf); // Original code
+//  AddPropertiesToList(LType, Self, Self.Fields, LIntf); // Original code
+  TioCommonBSABehavior.AddFields(LType, Self, LIntf, ''); // To support iORM nested fields on child objects
 end;
 
 function TInterfaceObjectBindSourceAdapter<T>.AppendAt: Integer;
@@ -124,13 +126,13 @@ begin
   // Set the BaseObjectType
   FTypeName := ATypeName;
   if FTypeName.IsEmpty then
-    FTypeName := TioRttiUtilities.GenericToString<T>;
+    FTypeName := TioUtilities.GenericToString<T>;
   FTypeAlias := ATypeAlias;
 
   // If the AObject is assigned the set the BaseRttiType from this instance (most accurate) else resolve the TypeName
   //  AObject is always an interface by generic constraint
   if Assigned(AObject) then
-    FBaseObjectRttiType := TioRttiUtilities.ClassRefToRttiType((AObject as TObject).ClassType)
+    FBaseObjectRttiType := TioUtilities.ClassRefToRttiType((AObject as TObject).ClassType)
   else
     FBaseObjectRttiType := TioResolverFactory.GetResolver(rsByDependencyInjection).ResolveInaccurateAsRttiType(FTypeName, FTypeAlias);
 
@@ -282,7 +284,9 @@ end;
 
 function TInterfaceObjectBindSourceAdapter<T>.SupportsNestedFields: Boolean;
 begin
-  Result := True;
+  // Disable support for NestedFields because iORM implements its own way of managing them
+  //  in the unit "iORM.LiveBindings.CommonBSABehavior" with relative changes also in the ActivebindSourceAdapters
+  Result := False;
 end;
 
 { TObjectBindSourceAdapter }

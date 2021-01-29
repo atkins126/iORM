@@ -127,7 +127,7 @@ type
     function RelationChildPropertyPathAssigned: Boolean;
     function GetRelationChildPropertyPath: TStrings;
     function GetRelationLoadType: TioLoadType;
-    function GetRelationChildObject(const Instance: Pointer): TObject;
+    function GetRelationChildObject(const Instance: Pointer; const AResolvePropertyPath: Boolean = True): TObject;
     function GetRelationChildObjectID(const Instance: Pointer): Integer;
     procedure SetTable(const ATable: IioContextTable);
     procedure SetFieldData;
@@ -231,7 +231,7 @@ implementation
 uses
   iORM.Context.Interfaces,
   iORM.DB.Factory, iORM.Exceptions, System.SysUtils, iORM.SqlTranslator,
-  System.StrUtils, iORM.Context.Map.Interfaces, iORM.Rtti.Utilities,
+  System.StrUtils, iORM.Context.Map.Interfaces, iORM.Utilities,
   iORM.DB.ConnectionContainer, iORM.DB.Interfaces, iORM.Context.Container;
 
 { TioProperty }
@@ -421,16 +421,16 @@ begin
   Result := FRelationChildTypeName;
 end;
 
-function TioProperty.GetRelationChildObject(const Instance: Pointer): TObject;
+function TioProperty.GetRelationChildObject(const Instance: Pointer; const AResolvePropertyPath: Boolean): TObject;
 var
   AValue: TValue;
 begin
   // Extract the child related object
   AValue := Self.GetValue(Instance);
-  Result := TioRttiUtilities.TValueToObject(AValue, True);
+  Result := TioUtilities.TValueToObject(AValue, True);
   // If a RelationChildPropertyPath is assigned then resolve it
-  if Self.RelationChildPropertyPathAssigned then
-    Result := TioRttiUtilities.ResolveChildPropertyPath(Result, FRelationChildPropertyPath);
+  if Self.RelationChildPropertyPathAssigned and AResolvePropertyPath then
+    Result := TioUtilities.ResolveChildPropertyPath(Result, FRelationChildPropertyPath);
 end;
 
 function TioProperty.GetRelationChildObjectID(const Instance: Pointer): Integer;
@@ -536,7 +536,7 @@ var
   AValue: TValue;
 begin
   AValue := Self.GetValue(Instance);
-  Result := TioRttiUtilities.TValueToObject(AValue, False)
+  Result := TioUtilities.TValueToObject(AValue, False)
 end;
 
 function TioProperty.IDSkipOnInsert: Boolean;

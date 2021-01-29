@@ -3,7 +3,7 @@ unit Model;
 interface
 
 uses iORM.Attributes, System.Generics.Collections, Interfaces,
-  iORM.Containers.Interfaces, iORM.CommonTypes;
+  iORM.Containers.Interfaces, iORM.CommonTypes, System.Rtti;
 
 type
 
@@ -29,6 +29,7 @@ type
   public
     constructor Create(NewPhoneType, NewPhoneNumber: String; NewPersonID: Integer; NewID: Integer = 0); overload;
     destructor Destroy; override;
+    [ioFTDefault(0)]
     property ID: Integer read GetID write SetID;
     property PersonID:Integer read GetPersonID write SetPersonID;
     property PhoneType:String read FPhoneType write FPhoneType;
@@ -39,8 +40,10 @@ type
   [ioIndex('[.LastName], [.FirstName]')]
   TPerson = class(TInterfacedObject, IPerson)
   private
+    [ioFTDefault(0)]
     FID: Integer;
     FLastName: String;
+    [ioFTDefault('prova_default')]
     FFirstName: String;
     FDateOfBirth: TDate;
     [ioHasMany(IPhoneNumber, 'PersonID', ioLazyLoad)]

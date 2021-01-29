@@ -45,7 +45,7 @@ uses
   iORM.Resolver.Interfaces, iORM.Containers.Interfaces, iORM.Where.Interfaces,
   System.Generics.Collections, iORM.Where.Destinations,
   iORM.Context.Map.Interfaces, FireDAC.Comp.Client, System.TypInfo,
-  iORM.Rtti.Utilities;
+  iORM.Utilities;
 
 type
 
@@ -56,6 +56,7 @@ type
     FTypeInfo: PTypeInfo;
     FDisableClassFromField: Boolean;
     FLazyLoad: Boolean;
+    FLimitRows, FLimitOffset: Integer;
     FOrderBy: IioSqlItemWhere;
     // Contiene le clausole where specificate fino ad ora
     FWhereItems: IWhereItems;
@@ -88,6 +89,8 @@ type
     function GetDisableClassFromField: Boolean;
     function GetOrderByInstance: IioSqlItemWhere;
     function GetOrderBySql(const AMap: IioMap): String;
+    function GetLimitRows: Integer;
+    function GetLimitOffset: Integer;
     procedure SetOrderBySql(const AOrderByText: String);
     function WhereConditionExists: Boolean;
     // ------ Generic destinationz
@@ -129,6 +132,8 @@ type
     function SetDetailsContainer(ADetailsContainer: IioWhereDetailsContainer): IioWhere;
     function Lazy(const ALazyEnabled: Boolean = True): IioWhere;
     function IsLazy: Boolean;
+    function _Limit(const ARows: Integer; const AOffset: Integer = 0): IioWhere;
+    function LimitExists: Boolean;
     // --------------------------------------------------------------
     // ------ Logic relations
     function _And: IioWhere; overload;
@@ -213,11 +218,11 @@ type
       const AIndexOrientation: TioIndexOrientation = ioAscending; const AUnique: Boolean = False); overload;
     procedure DropIndex(const AIndexName: String);
     // ----- Properties -----
-    property TypeName: String read GetTypeName write SetTypeName;
-    property TypeAlias: String read GetTypeAlias write SetTypeAlias;
-    property TypeInfo: PTypeInfo read GetTypeInfo write SetTypeInfo;
     property Details: IioWhereDetailsContainer read GetDetails;
     property Items: IWhereItems read GetItems;
+    property TypeAlias: String read GetTypeAlias write SetTypeAlias;
+    property TypeInfo: PTypeInfo read GetTypeInfo write SetTypeInfo;
+    property TypeName: String read GetTypeName write SetTypeName;
   end;
 
   // Where conditions (generic version)
@@ -241,6 +246,7 @@ type
     function DisableClassFromField: IioWhere<T>;
     function SetDetailsContainer(ADetailsContainer: IioWhereDetailsContainer): IioWhere<T>;
     function Lazy(const ALazyEnabled: Boolean = True): IioWhere<T>;
+    function _Limit(const ARows: Integer; const AOffset: Integer = 0): IioWhere<T>;
     // ------ Logic relations
     function _And: IioWhere<T>; overload;
     function _Or: IioWhere<T>; overload;
@@ -563,6 +569,8 @@ begin
   FWhereItems := TioWhereFactory.NewWhereItems;
   FDetailsContainer := TioWhereFactory.NewDetailsContainer;
   FOrderBy := nil;
+  FLimitRows := 0;
+  FLimitOffset := 0;
 end;
 
 procedure TioWhere.CreateIndex(ACommaSepFieldList: String; const AIndexOrientation: TioIndexOrientation; const AUnique: Boolean);
@@ -679,6 +687,16 @@ begin
   Result := FWhereItems;
 end;
 
+function TioWhere.GetLimitOffset: Integer;
+begin
+  Result := FLimitOffset;
+end;
+
+function TioWhere.GetLimitRows: Integer;
+begin
+  Result := FLimitRows;
+end;
+
 function TioWhere.GetOrderByInstance: IioSqlItemWhere;
 begin
   Result := FOrderBy;
@@ -764,6 +782,18 @@ begin
   Self.FLazyLoad := ALazyEnabled;
 end;
 
+function TioWhere._Limit(const ARows: Integer; const AOffset: Integer = 0): IioWhere;
+begin
+  Result := Self;
+  FLimitRows := ARows;
+  FLimitOffset := AOffset;
+end;
+
+function TioWhere.LimitExists: Boolean;
+begin
+  Result := FLimitRows > 0;
+end;
+
 function TioWhere.SetDetailsContainer(ADetailsContainer: IioWhereDetailsContainer): IioWhere;
 begin
   Result := Self;
@@ -801,7 +831,7 @@ var
   LClassInstance: TObject;
 begin
   LClassInstance := Self.ToObject;
-  if TioRttiUtilities.IsAnInterfaceTypeName(TypeName) then
+  if TioUtilities.IsAnInterfaceTypeName(TypeName) then
   begin
     Supports(LClassInstance, IInterface, LIntfInstance);
     _Show(LIntfInstance, AVVMAlias, AForceTypeNameUse);
@@ -817,7 +847,7 @@ var
   LIntfList: TList<IInterface>;
   LIntfInstance: IInterface;
 begin
-  if TioRttiUtilities.IsAnInterfaceTypeName(TypeName) then
+  if TioUtilities.IsAnInterfaceTypeName(TypeName) then
   begin
     LIntfList := Self.ToGenericList.OfType<TList<IInterface>>;
     try
@@ -843,7 +873,7 @@ procedure TioWhere.ShowList(const AVVMAlias: String);
 var
   LList: TObject;
 begin
-  if TioRttiUtilities.IsAnInterfaceTypeName(TypeName) then
+  if TioUtilities.IsAnInterfaceTypeName(TypeName) then
     LList := Self.ToList(TList<IInterface>)
   else
     LList := Self.ToList(TList<TObject>);
@@ -856,7 +886,7 @@ var
   AContext: IioContext;
 begin
   // If the master property type is an interface...
-  if TioRttiUtilities.IsAnInterfaceTypeName(FTypeName) then
+  if TioUtilities.IsAnInterfaceTypeName(FTypeName) then
   begin
     // Create the BSA
     Result := TioActiveInterfaceListBindSourceAdapter.Create(FTypeName, FTypeAlias, Self, // Where
@@ -879,7 +909,7 @@ var
   AContext: IioContext;
 begin
   // If the master property type is an interface...
-  if TioRttiUtilities.IsAnInterfaceTypeName(FTypeName) then
+  if TioUtilities.IsAnInterfaceTypeName(FTypeName) then
   begin
     // Create the BSA
     Result := TioActiveInterfaceObjectBindSourceAdapter.Create(FTypeName, FTypeAlias, Self, // Where
@@ -919,7 +949,7 @@ end;
 
 function TioWhere.ToList(const AListClassRef: TioClassRef; const AOwnsObjects: Boolean = True): TObject;
 begin
-  Result := Self.ToList(TioRttiUtilities.ClassRefToRttiType(AListClassRef), AOwnsObjects);
+  Result := Self.ToList(TioUtilities.ClassRefToRttiType(AListClassRef), AOwnsObjects);
 end;
 
 function TioWhere.ToListBindSourceAdapter(AOwner: TComponent; AOwnsObject: Boolean): TBindSourceAdapter;
@@ -927,7 +957,7 @@ var
   AContext: IioContext;
 begin
   // If the master property type is an interface...
-  if TioRttiUtilities.IsAnInterfaceTypeName(FTypeName) then
+  if TioUtilities.IsAnInterfaceTypeName(FTypeName) then
     Result := TInterfaceListBindSourceAdapter.Create(AOwner, Self.ToGenericList.OfType<TList<IInterface>>, FTypeAlias, FTypeName,
       AOwnsObject)
     // else if the master property type is a class...
@@ -970,7 +1000,7 @@ var
   LIntfObj: IInterface;
 begin
   // If the master property type is an interface...
-  if TioRttiUtilities.IsAnInterfaceTypeName(FTypeName) then
+  if TioUtilities.IsAnInterfaceTypeName(FTypeName) then
   begin
     if not Supports(Self.ToObject, IInterface, LIntfObj) then
       raise EioException.Create(Self.ClassName, 'ToObjectBindSourceAdapter', 'Object does not implement IInterface.');
@@ -1288,6 +1318,12 @@ begin
   TioWhere(Self).Lazy(ALazyEnabled);
 end;
 
+function TioWhere<T>._Limit(const ARows, AOffset: Integer): IioWhere<T>;
+begin
+  Result := Self;
+  TioWhere(Self)._Limit(ARows, AOffset);
+end;
+
 function TioWhere<T>.SetDetailsContainer(ADetailsContainer: IioWhereDetailsContainer): IioWhere<T>;
 begin
   Result := Self;
@@ -1329,7 +1365,7 @@ end;
 
 function TioWhere<T>.ToObject(const AObj: TObject): T;
 begin
-  Result := TioRttiUtilities.CastObjectToGeneric<T>(TioWhere(Self).ToObject(AObj));
+  Result := TioUtilities.CastObjectToGeneric<T>(TioWhere(Self).ToObject(AObj));
 end;
 
 // function TioWhere<T>.ToObjectList(const AOwnsObjects: Boolean): TObjectList<TObject>;

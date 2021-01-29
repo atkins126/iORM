@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, iORM.Attributes,
   iORM.MVVM.Components.ViewModelBridge, Data.DB,
   iORM.DB.Components.DataSet.Base, iORM.DB.Components.DataSet.ModelDataSet,
-  Vcl.Grids, Vcl.DBGrids, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.DBCtrls;
+  Vcl.Grids, Vcl.DBGrids, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.DBCtrls, Vcl.Mask;
 
 type
 
@@ -27,9 +27,16 @@ type
     ScrollBox1: TScrollBox;
     DBImage1: TDBImage;
     ModelMasterDataSetID: TIntegerField;
-    ModelMasterDataSetDescrizione: TStringField;
     ModelMasterDataSetPropDateTime: TDateTimeField;
     ModelMasterDataSetPropBitMap: TGraphicField;
+    ModelMasterDataSetDescrizione: TStringField;
+    ModelMasterDataSetPropBoolean: TBooleanField;
+    DBCheckBox1: TDBCheckBox;
+    DBEdit1: TDBEdit;
+    Label3: TLabel;
+    ModelMasterDataSetBelongsToDetailDescrizione: TStringField;
+    Label4: TLabel;
+    DBEdit2: TDBEdit;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
   private

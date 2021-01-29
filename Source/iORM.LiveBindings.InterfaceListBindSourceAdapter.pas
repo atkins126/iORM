@@ -106,20 +106,23 @@ type
 
 implementation
 
-uses Data.Bind.Consts, System.SysUtils, iORM.Rtti.Utilities, System.TypInfo, iORM,
-  iORM.Resolver.Factory, iORM.Resolver.Interfaces, iORM.Exceptions;
+uses Data.Bind.Consts, System.SysUtils, iORM.Utilities, System.TypInfo, iORM,
+  iORM.Resolver.Factory, iORM.Resolver.Interfaces, iORM.Exceptions,
+  iORM.LiveBindings.CommonBSABehavior;
 
 { TListBindSourceAdapter<T> }
 
 procedure TInterfaceListBindSourceAdapter<T>.AddFields;
 var
   LType: TRttiType;
-  LGetMemberObject: IGetMemberObject;
+  LIntf: IGetMemberObject;
 begin
+  // inherited; // NB: Don't inherit from ancestor
   LType := GetObjectType;
-  LGetMemberObject := TBindSourceAdapterGetMemberObject.Create(Self);
-  AddFieldsToList(LType, Self, Self.Fields, LGetMemberObject);
-  AddPropertiesToList(LType, Self, Self.Fields, LGetMemberObject);
+  LIntf := TBindSourceAdapterGetMemberObject.Create(Self);
+//  AddFieldsToList(LType, Self, Self.Fields, LIntf); // Original code
+//  AddPropertiesToList(LType, Self, Self.Fields, LIntf); // Original code
+  TioCommonBSABehavior.AddFields(LType, Self, LIntf, ''); // To support iORM nested fields on child objects
 end;
 
 function TInterfaceListBindSourceAdapter<T>.AppendAt: Integer;
@@ -162,7 +165,7 @@ begin
   // Set the BaseObjectType
   FTypeName := ATypeName;
   if FTypeName.IsEmpty then
-    FTypeName := TioRttiUtilities.GenericToString<T>;
+    FTypeName := TioUtilities.GenericToString<T>;
   FTypeAlias := ATypeAlias;
 
 //  FBaseObjectRttiType := io.di.Locate(FTypeName).Alias(FTypeAlias).GetItem.RttiType;
@@ -423,7 +426,9 @@ end;
 
 function TInterfaceListBindSourceAdapter<T>.SupportsNestedFields: Boolean;
 begin
-  Result := True;
+  // Disable support for NestedFields because iORM implements its own way of managing them
+  //  in the unit "iORM.LiveBindings.CommonBSABehavior" with relative changes also in the ActivebindSourceAdapters
+  Result := False;
 end;
 
 { TInterfaceListBindSourceAdapter }

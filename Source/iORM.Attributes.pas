@@ -99,7 +99,9 @@ type
   strict private
     FValue: TValue;
   public
-    constructor Create(const AValue: TValue);
+    constructor Create(const AValue: String); overload;
+    constructor Create(const AValue: Integer); overload;
+    constructor Create(const AValue: TDateTime); overload;
     property Value: TValue read FValue;
   end;
 
@@ -552,7 +554,7 @@ type
 implementation
 
 uses
-  System.SysUtils, iORM.Rtti.Utilities;
+  System.SysUtils, iORM.Utilities;
 
 { TioStringAttribute }
 
@@ -578,7 +580,7 @@ end;
 
 constructor TioCustomRelationAttribute.Create(AIID: TGUID; const AChildTypeAlias: String);
 begin
-  FChildTypeName := TioRttiUtilities.GUIDtoInterfaceName(AIID);
+  FChildTypeName := TioUtilities.GUIDtoInterfaceName(AIID);
   FChildTypeAlias := AChildTypeAlias;
 end;
 
@@ -606,12 +608,12 @@ end;
 
 constructor ioHasMany.Create(AIID: TGUID; const AChildTypeAlias, AChildPropertyName: String; const ALoadType: TioLoadType);
 begin
-  Self.Create(TioRttiUtilities.GUIDtoInterfaceName(AIID), AChildTypeAlias, AChildPropertyName, ALoadType);
+  Self.Create(TioUtilities.GUIDtoInterfaceName(AIID), AChildTypeAlias, AChildPropertyName, ALoadType);
 end;
 
 constructor ioHasMany.Create(AIID: TGUID; const AChildPropertyName: String; const ALoadType: TioLoadType);
 begin
-  Self.Create(TioRttiUtilities.GUIDtoInterfaceName(AIID), '', AChildPropertyName, ALoadType);
+  Self.Create(TioUtilities.GUIDtoInterfaceName(AIID), '', AChildPropertyName, ALoadType);
 end;
 
 { ioJoin }
@@ -823,13 +825,23 @@ end;
 
 constructor TioCustomForTargetModel.Create(ATargetIID: TGUID; const AAlias: String);
 begin
-  FTargetTypeName := TioRttiUtilities.GUIDtoInterfaceName(ATargetIID);
+  FTargetTypeName := TioUtilities.GUIDtoInterfaceName(ATargetIID);
   FTargetTypeAlias := AAlias;
 end;
 
 { TioCustomTValueAttribute }
 
-constructor TioCustomTValueAttribute.Create(const AValue: TValue);
+constructor TioCustomTValueAttribute.Create(const AValue: String);
+begin
+  FValue := AValue;
+end;
+
+constructor TioCustomTValueAttribute.Create(const AValue: TDateTime);
+begin
+  FValue := TValue.From<TDateTime>(AValue);
+end;
+
+constructor TioCustomTValueAttribute.Create(const AValue: Integer);
 begin
   FValue := AValue;
 end;

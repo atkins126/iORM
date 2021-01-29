@@ -30,6 +30,7 @@ type
     function Altered: TioDBBuilderFieldAlter;
     function FieldCustomType: string;
     function FieldDefault: TValue;
+    function FieldDefaultExists: Boolean;
     function FieldLength: integer;
     function FieldName: String;
     function FieldPrecision: integer;
@@ -163,3 +164,4 @@ type
 implementation
 
 end.
+
